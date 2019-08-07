@@ -10,7 +10,6 @@ todo:
 - figure out how to make scrollbars smaller
 - add new tabs for ramp setpoint, quadradic, etc
 - add random starting values
-- add disable/enable checkboxes for each plot
 """
 
 import sys
@@ -47,6 +46,12 @@ class Gui(tk.Frame):
 
         # -----------------_- STEP INPUT  _--------------------#
         Tab(self.master,self.notebook,"STEP")
+
+        # -----------------_- STEP INPUT  _--------------------#
+        Tab(self.master,self.notebook,"RAMP")
+
+        # -----------------_- STEP INPUT  _--------------------#
+        Tab(self.master,self.notebook,"QUADRATIC")
 
         # ------------------ KEY BINDINGS ---------------------#
         self.master.bind("<Escape>",self.close_window)

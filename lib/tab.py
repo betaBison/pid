@@ -51,6 +51,12 @@ class Tab():
 
         if type == "STEP":
             self.setpoint_setup_step()
+        elif type == "RAMP":
+            self.setpoint_setup_ramp()
+        elif type == "QUADRATIC":
+            self.setpoint_setup_quadratic()
+        else:
+            print('need valid input type',type)
 
         self.controller_setup()
 
@@ -110,6 +116,96 @@ class Tab():
         # 90% -100% =  0.0
         self.setpoint[int(0.9*self.time_length):] *= -0.0
 
+    def setpoint_setup_ramp(self):
+        self.hz = 100.0         # time frequency
+        self.time_start = 0.0   # start time
+        self.time_end = 10.0    # end time
+        self.dt = 1.0/self.hz   # timestep
+        self.time_length = int((self.time_end-self.time_start)/self.dt)
+
+        # time array
+        self.time = np.arange(self.time_start, self.time_end, self.dt)
+
+        # create setpoint list
+        self.setpoint = np.ones((self.time_length,1))
+        #  0% - 10% =  0.0
+        self.setpoint[0:int(0.1*self.time_length)] *= 0.0
+        # 10% - 20% =  1.0 ramp
+        for ii in range(int(0.1*self.time_length),int(0.15*self.time_length)):
+            self.setpoint[ii] = 2.0 * self.time[ii] - 2.0
+        for ii in range(int(0.15*self.time_length),int(0.2*self.time_length)):
+            self.setpoint[ii] = -2.0 * self.time[ii] + 4.0
+        # 20% - 30% =  0.0
+        self.setpoint[int(0.2*self.time_length):int(0.3*self.time_length)] *=  0.0
+        # 30% - 40% = -1.0 ramp
+        for ii in range(int(0.3*self.time_length),int(0.35*self.time_length)):
+            self.setpoint[ii] = -2.0 * self.time[ii] + 6.0
+        for ii in range(int(0.35*self.time_length),int(0.4*self.time_length)):
+            self.setpoint[ii] = 2.0 * self.time[ii] - 8.0
+        # 40% - 50% =  0.0
+        self.setpoint[int(0.4*self.time_length):int(0.5*self.time_length)] *=  0.0
+        # 50% - 60% =  1.0 ramp
+        for ii in range(int(0.5*self.time_length),int(0.55*self.time_length)):
+            self.setpoint[ii] = 2.0 * self.time[ii] - 10.0
+        for ii in range(int(0.55*self.time_length),int(0.6*self.time_length)):
+            self.setpoint[ii] = -2.0 * self.time[ii] + 12.0
+        # 60% - 70% = -1.0 ramp
+        for ii in range(int(0.6*self.time_length),int(0.65*self.time_length)):
+            self.setpoint[ii] = -2.0 * self.time[ii] + 12.0
+        for ii in range(int(0.65*self.time_length),int(0.7*self.time_length)):
+            self.setpoint[ii] = 2.0 * self.time[ii] - 14.0
+        # 70% - 80% =  2.0 ramp
+        for ii in range(int(0.7*self.time_length),int(0.75*self.time_length)):
+            self.setpoint[ii] = 4.0 * (self.time[ii] - 7.0)
+        for ii in range(int(0.75*self.time_length),int(0.8*self.time_length)):
+            self.setpoint[ii] = -4.0 * (self.time[ii] - 7.5) + 2.0
+        # 80% - 90% = -3.0 ramp
+        for ii in range(int(0.8*self.time_length),int(0.85*self.time_length)):
+            self.setpoint[ii] = -6.0 * (self.time[ii] - 8.0)
+        for ii in range(int(0.85*self.time_length),int(0.9*self.time_length)):
+            self.setpoint[ii] = 6.0 * (self.time[ii] - 8.5) - 3.0
+        # 90% -100% =  0.0
+        self.setpoint[int(0.9*self.time_length):] *= -0.0
+
+    def setpoint_setup_quadratic(self):
+        self.hz = 100.0         # time frequency
+        self.time_start = 0.0   # start time
+        self.time_end = 10.0    # end time
+        self.dt = 1.0/self.hz   # timestep
+        self.time_length = int((self.time_end-self.time_start)/self.dt)
+
+        # time array
+        self.time = np.arange(self.time_start, self.time_end, self.dt)
+
+        # create setpoint list
+        self.setpoint = np.ones((self.time_length,1))
+        #  0% - 10% =  0.0
+        self.setpoint[0:int(0.1*self.time_length)] *= 0.0
+        # 10% - 20% =  1.0 parabola
+        for ii in range(int(0.1*self.time_length),int(0.2*self.time_length)):
+            self.setpoint[ii] = -4.0 * (self.time[ii] - 1.5)**2 + 1.0
+        # 20% - 30% =  0.0
+        self.setpoint[int(0.2*self.time_length):int(0.3*self.time_length)] *=  0.0
+        # 30% - 40% = -1.0 parabola
+        for ii in range(int(0.3*self.time_length),int(0.4*self.time_length)):
+            self.setpoint[ii] = 4.0 * (self.time[ii] - 3.5)**2 - 1.0
+        # 40% - 50% =  0.0
+        self.setpoint[int(0.4*self.time_length):int(0.5*self.time_length)] *=  0.0
+        # 50% - 60% =  1.0 parabola
+        for ii in range(int(0.5*self.time_length),int(0.6*self.time_length)):
+            self.setpoint[ii] = -4.0 * (self.time[ii] - 5.5)**2 + 1.0
+        # 60% - 70% = -1.0 parabola
+        for ii in range(int(0.6*self.time_length),int(0.7*self.time_length)):
+            self.setpoint[ii] = 4.0 * (self.time[ii] - 6.5)**2 - 1.0
+        # 70% - 80% =  2.0 parabola
+        for ii in range(int(0.7*self.time_length),int(0.8*self.time_length)):
+            self.setpoint[ii] = -8.0 * (self.time[ii] - 7.5)**2 + 2.0
+        # 80% - 90% = -3.0 parabola
+        for ii in range(int(0.8*self.time_length),int(0.9*self.time_length)):
+            self.setpoint[ii] = 12.0 * (self.time[ii] - 8.5)**2 - 3.0
+        # 90% -100% =  0.0
+        self.setpoint[int(0.9*self.time_length):] *= -0.0
+
     def controller_setup(self):
 
         # setup results lists
@@ -124,11 +220,11 @@ class Tab():
         self.kps = [0,0,0,0]
 
         self.ki_low = 0.0
-        self.ki_high = 1.5
+        self.ki_high = 5.0
         self.kis = [0,0,0,0]
 
         self.kd_low = 0.0
-        self.kd_high = 1.5
+        self.kd_high = 0.01
         self.kds = [0,0,0,0]
 
         #setup controllers
