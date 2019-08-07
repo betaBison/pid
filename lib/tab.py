@@ -28,6 +28,8 @@ style.use('ggplot')
 
 from PyQt5.QtWidgets import QApplication
 
+import random
+
 
 class Tab():
     '''
@@ -61,6 +63,8 @@ class Tab():
         self.controller_setup()
 
         self.scrollbar_setup()
+
+        self.random_initialization()
 
         self.draw()
 
@@ -217,15 +221,15 @@ class Tab():
         # setup gains
         self.kp_low = 0.0
         self.kp_high = 1.5
-        self.kps = [0,0,0,0]
+        self.kps = [0, 0, 0, 0]
 
         self.ki_low = 0.0
         self.ki_high = 5.0
-        self.kis = [0,0,0,0]
+        self.kis = [0, 0, 0, 0]
 
         self.kd_low = 0.0
         self.kd_high = 0.01
-        self.kds = [0,0,0,0]
+        self.kds = [0, 0, 0, 0]
 
         #setup controllers
         self.controller1 = PID(self.kps[0],self.kis[0],self.kds[0])
@@ -238,6 +242,19 @@ class Tab():
         self.controller_update(self.controller2,self.controller2_result)
         self.controller_update(self.controller3,self.controller3_result)
         self.controller_update(self.controller4,self.controller4_result)
+
+    def random_number(self,low,high):
+        number = random.random()*(high-low)+low
+        return number
+
+    def random_initialization(self):
+        for ii in range(4):
+            random_kp = self.random_number(self.kp_low,0.1*self.kp_high)
+            self.kps[ii].set(random_kp)
+            self.kp_scrollbars[ii].set(random_kp)
+            random_ki = self.random_number(self.ki_low,0.1*self.ki_high)
+            self.kis[ii].set(random_ki)
+            self.ki_scrollbars[ii].set(random_ki)
 
     def controller_update(self,controller,result):
         controller.reset()

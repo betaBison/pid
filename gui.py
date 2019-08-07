@@ -8,8 +8,6 @@ Description: Simple PID control GUI
 todo:
 - add setpoint variables (noise, steady state error, etc)
 - figure out how to make scrollbars smaller
-- add new tabs for ramp setpoint, quadradic, etc
-- add random starting values
 """
 
 import sys
