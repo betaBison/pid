@@ -44,7 +44,7 @@ class Tab():
         self.notebook.add(self.tab, text=tab_name)
 
         # makes resizing possible
-        for x in range(12):
+        for x in range(10):
             tk.Grid.columnconfigure(self.tab,x,weight=1)
         for y in range(20):
             tk.Grid.rowconfigure(self.tab,y,weight=1)
@@ -83,7 +83,7 @@ class Tab():
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.tab)  # A tk.DrawingArea.
         self.canvas.draw()
         self.canvas.get_tk_widget().grid(row=2,rowspan=10,
-            column=0,columnspan=12)
+            column=0,columnspan=10)
         self.my_plot = self.fig.add_subplot(111)
         self.my_plot.set_ylim([-5,5])
 
@@ -96,6 +96,10 @@ class Tab():
 
         # time array
         self.time = np.arange(self.time_start, self.time_end, self.dt)
+
+        self.steady_state_low = -1.5
+        self.steady_state_high = 1.5
+        self.steady_state_error = 0.0
 
         # create setpoint list
         self.setpoint = np.ones((self.time_length,1))
@@ -129,6 +133,10 @@ class Tab():
 
         # time array
         self.time = np.arange(self.time_start, self.time_end, self.dt)
+
+        self.steady_state_low = -1.5
+        self.steady_state_high = 1.5
+        self.steady_state_error = 0.0
 
         # create setpoint list
         self.setpoint = np.ones((self.time_length,1))
@@ -181,6 +189,10 @@ class Tab():
         # time array
         self.time = np.arange(self.time_start, self.time_end, self.dt)
 
+        self.steady_state_low = -1.5
+        self.steady_state_high = 1.5
+        self.steady_state_error = 0.0
+
         # create setpoint list
         self.setpoint = np.ones((self.time_length,1))
         #  0% - 10% =  0.0
@@ -220,11 +232,11 @@ class Tab():
 
         # setup gains
         self.kp_low = 0.0
-        self.kp_high = 1.5
+        self.kp_high = 2.0
         self.kps = [0, 0, 0, 0]
 
         self.ki_low = 0.0
-        self.ki_high = 5.0
+        self.ki_high = 20.0
         self.kis = [0, 0, 0, 0]
 
         self.kd_low = 0.0
@@ -249,17 +261,22 @@ class Tab():
 
     def random_initialization(self):
         for ii in range(4):
-            random_kp = self.random_number(self.kp_low,0.1*self.kp_high)
+            random_kp = self.random_number(self.kp_low + 0.2*(self.kp_high - self.kp_low)
+                ,self.kp_high)
             self.kps[ii].set(random_kp)
             self.kp_scrollbars[ii].set(random_kp)
-            random_ki = self.random_number(self.ki_low,0.1*self.ki_high)
+            random_ki = self.random_number(self.ki_low,self.ki_high)
             self.kis[ii].set(random_ki)
             self.ki_scrollbars[ii].set(random_ki)
+        random_steady_state = self.random_number(self.steady_state_low,self.steady_state_high)
+        self.steady_state.set(random_steady_state)
+        self.steady_state_scrollbar.set(random_steady_state)
 
     def controller_update(self,controller,result):
         controller.reset()
         for ii in range(1,self.time_length):
-            result[ii] = controller.update(result[ii-1],self.setpoint[ii],self.dt)
+            result[ii] = controller.update(result[ii-1],self.setpoint[ii],self.dt) \
+                + self.steady_state_error
 
     def draw(self):
 
@@ -286,6 +303,23 @@ class Tab():
         self.my_plot.set_ylim([-3.2,3.2])
 
         self.canvas.draw()
+
+    def steady_state_scrollbar_update(self,value):
+        self.steady_state.set(value)
+        self.steady_state_error = float(value)
+        self.controller_update(self.controller1,self.controller1_result)
+        self.controller_update(self.controller2,self.controller2_result)
+        self.controller_update(self.controller3,self.controller3_result)
+        self.controller_update(self.controller4,self.controller4_result)
+        self.draw()
+
+    def steady_state_entry_update(self,event):
+        try:
+            entry = float(self.steady_state_entry.get())
+            value = np.clip(entry,self.steady_state_low,self.steady_state_high)
+            self.steady_state_scrollbar.set(float(value))
+        except ValueError:
+            self.steady_state.set(self.steady_state_error)
 
     def kp1_scrollbar_update(self,value):
         self.kps[0].set(value)
@@ -549,76 +583,95 @@ class Tab():
 
     def scrollbar_setup(self):
 
+        # Setpoint
+        setpoint_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Setpoint Variables', foreground='midnight blue')
+        setpoint_label.grid(row=12,rowspan=2,column=0, columnspan=2)
+        steady_state_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Steady State Error',foreground='midnight blue')
+        steady_state_label.grid(row=14,rowspan=1,column=0,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.steady_state_scrollbar = ttk.Scale(self.tab,
+            from_=self.steady_state_low, to=self.steady_state_high,
+            command=self.steady_state_scrollbar_update)
+        self.steady_state_scrollbar.grid(row=15,column=0,columnspan=1,
+            sticky=tk.E+tk.W,padx=10)
+        self.steady_state = tk.DoubleVar(self.tab)
+        self.steady_state_entry = ttk.Entry(self.tab,textvariable=self.steady_state)
+        self.steady_state_entry.bind("<Return>",self.steady_state_entry_update)
+        self.steady_state_entry.grid(row=15,column=1,columnspan=1,
+            sticky=tk.E+tk.W,padx=10)
+
         # PID # 1
         pid_1_label = ttk.Label(self.tab, anchor=tk.W,
             text='PID Controller #1',foreground='orange red')
-        pid_1_label.grid(row=12,rowspan=2,column=1,columnspan=2,
+        pid_1_label.grid(row=12,rowspan=2,column=3,columnspan=1,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         self.controller1_enabled = tk.BooleanVar()
         self.controller1_enabled.set(True)
         controller1_checkbox = ttk.Checkbutton(self.tab,
             var=self.controller1_enabled, command=self.enable_controller1)
-        controller1_checkbox.grid(row=12,rowspan=2,column=0,columnspan=1,
+        controller1_checkbox.grid(row=12,rowspan=2,column=2,columnspan=1,
             stick=tk.E, padx=5,pady=5,ipadx=5,ipady=5)
         kp_1_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Proportional Gain',foreground='orange red')
-        kp_1_label.grid(row=14,rowspan=1,column=0,columnspan=3,
+        kp_1_label.grid(row=14,rowspan=1,column=2,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kp1_scrollbar = ttk.Scale(self.tab,from_=self.kp_low, to=self.kp_high,
             command=self.kp1_scrollbar_update)
-        kp1_scrollbar.grid(row=15,column=0,columnspan=2,
+        kp1_scrollbar.grid(row=15,column=2,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kps[0] = tk.DoubleVar(self.tab)
         kp1_entry = ttk.Entry(self.tab,textvariable=self.kps[0])
         kp1_entry.bind("<Return>",self.kp1_entry_update)
-        kp1_entry.grid(row=15,column=2,columnspan=1,
+        kp1_entry.grid(row=15,column=3,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         ki_1_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Integral Gain',foreground='orange red')
-        ki_1_label.grid(row=16,rowspan=1,column=0,columnspan=3,
+        ki_1_label.grid(row=16,rowspan=1,column=2,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         ki1_scrollbar = ttk.Scale(self.tab,from_=self.ki_low, to=self.ki_high,
             command=self.ki1_scrollbar_update)
-        ki1_scrollbar.grid(row=17,column=0,columnspan=2,
+        ki1_scrollbar.grid(row=17,column=2,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kis[0] = tk.DoubleVar(self.tab)
         ki1_entry = ttk.Entry(self.tab,textvariable=self.kis[0])
         ki1_entry.bind("<Return>",self.ki1_entry_update)
-        ki1_entry.grid(row=17,column=2,
+        ki1_entry.grid(row=17,column=3,
             sticky=tk.E+tk.W,padx=10)
         kd_1_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Derivative Gain',foreground='orange red')
-        kd_1_label.grid(row=18,rowspan=1,column=0,columnspan=3,
+        kd_1_label.grid(row=18,rowspan=1,column=2,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kd1_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd1_scrollbar_update)
-        kd1_scrollbar.grid(row=19,column=0,columnspan=2,
+        kd1_scrollbar.grid(row=19,column=2,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kds[0] = tk.DoubleVar(self.tab)
         kd1_entry = ttk.Entry(self.tab,textvariable=self.kds[0])
         kd1_entry.bind("<Return>",self.kd1_entry_update)
-        kd1_entry.grid(row=19,column=2,
+        kd1_entry.grid(row=19,column=3,
             sticky=tk.E+tk.W,padx=10)
 
 
         # PID #2
         pid_2_label = ttk.Label(self.tab, anchor=tk.W,
             text='PID Controller #2',foreground='goldenrod')
-        pid_2_label.grid(row=12,rowspan=2,column=4,columnspan=2,
+        pid_2_label.grid(row=12,rowspan=2,column=5,columnspan=1,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         self.controller2_enabled = tk.BooleanVar()
         self.controller2_enabled.set(True)
         controller2_checkbox = ttk.Checkbutton(self.tab,
             var=self.controller2_enabled, command=self.enable_controller2)
-        controller2_checkbox.grid(row=12,rowspan=2,column=3,columnspan=1,
+        controller2_checkbox.grid(row=12,rowspan=2,column=4,columnspan=1,
             stick=tk.E, padx=5,pady=5,ipadx=5,ipady=5)
         kp_2_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Proportional Gain',foreground='goldenrod')
-        kp_2_label.grid(row=14,rowspan=1,column=3,columnspan=3,
+        kp_2_label.grid(row=14,rowspan=1,column=4,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kp2_scrollbar = ttk.Scale(self.tab,from_=self.kp_low, to=self.kp_high,
             command=self.kp2_scrollbar_update)
-        kp2_scrollbar.grid(row=15,column=3,columnspan=2,
+        kp2_scrollbar.grid(row=15,column=4,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kps[1] = tk.DoubleVar(self.tab)
         kp2_entry = ttk.Entry(self.tab,textvariable=self.kps[1])
@@ -627,11 +680,11 @@ class Tab():
             sticky=tk.E+tk.W,padx=10)
         ki_2_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Integral Gain',foreground='goldenrod')
-        ki_2_label.grid(row=16,rowspan=1,column=3,columnspan=3,
+        ki_2_label.grid(row=16,rowspan=1,column=4,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         ki2_scrollbar = ttk.Scale(self.tab,from_=self.ki_low, to=self.ki_high,
             command=self.ki2_scrollbar_update)
-        ki2_scrollbar.grid(row=17,column=3,columnspan=2,
+        ki2_scrollbar.grid(row=17,column=4,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kis[1] = tk.DoubleVar(self.tab)
         ki2_entry = ttk.Entry(self.tab,textvariable=self.kis[1])
@@ -640,11 +693,11 @@ class Tab():
             sticky=tk.E+tk.W,padx=10)
         kd_2_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Derivative Gain',foreground='goldenrod')
-        kd_2_label.grid(row=18,rowspan=1,column=3,columnspan=3,
+        kd_2_label.grid(row=18,rowspan=1,column=4,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kd2_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd2_scrollbar_update)
-        kd2_scrollbar.grid(row=19,column=3,columnspan=2,
+        kd2_scrollbar.grid(row=19,column=4,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kds[1] = tk.DoubleVar(self.tab)
         kd2_entry = ttk.Entry(self.tab,textvariable=self.kds[1])
@@ -656,7 +709,7 @@ class Tab():
         # PID #3
         pid_3_label = ttk.Label(self.tab, anchor=tk.W,
             text='PID Controller #3',foreground='DodgerBlue2')
-        pid_3_label.grid(row=12,rowspan=2,column=7,columnspan=2,
+        pid_3_label.grid(row=12,rowspan=2,column=7,columnspan=1,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         self.controller3_enabled = tk.BooleanVar()
         self.controller3_enabled.set(True)
@@ -666,93 +719,93 @@ class Tab():
             stick=tk.E, padx=5,pady=5,ipadx=5,ipady=5)
         kp_3_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Proportional Gain',foreground='DodgerBlue2')
-        kp_3_label.grid(row=14,rowspan=1,column=6,columnspan=3,
+        kp_3_label.grid(row=14,rowspan=1,column=6,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kp3_scrollbar = ttk.Scale(self.tab,from_=self.kp_low, to=self.kp_high,
             command=self.kp3_scrollbar_update)
-        kp3_scrollbar.grid(row=15,column=6,columnspan=2,
+        kp3_scrollbar.grid(row=15,column=6,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kps[2] = tk.DoubleVar(self.tab)
         kp3_entry = ttk.Entry(self.tab,textvariable=self.kps[2])
         kp3_entry.bind("<Return>",self.kp3_entry_update)
-        kp3_entry.grid(row=15,column=8,
+        kp3_entry.grid(row=15,column=7,
             sticky=tk.E+tk.W,padx=10)
         ki_3_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Integral Gain',foreground='DodgerBlue2')
-        ki_3_label.grid(row=16,rowspan=1,column=6,columnspan=3,
+        ki_3_label.grid(row=16,rowspan=1,column=6,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         ki3_scrollbar = ttk.Scale(self.tab,from_=self.ki_low, to=self.ki_high,
             command=self.ki3_scrollbar_update)
-        ki3_scrollbar.grid(row=17,column=6,columnspan=2,
+        ki3_scrollbar.grid(row=17,column=6,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kis[2] = tk.DoubleVar(self.tab)
         ki3_entry = ttk.Entry(self.tab,textvariable=self.kis[2])
         ki3_entry.bind("<Return>",self.ki3_entry_update)
-        ki3_entry.grid(row=17,column=8,
+        ki3_entry.grid(row=17,column=7,
             sticky=tk.E+tk.W,padx=10)
         kd_3_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Derivative Gain',foreground='DodgerBlue2')
-        kd_3_label.grid(row=18,rowspan=1,column=6,columnspan=3,
+        kd_3_label.grid(row=18,rowspan=1,column=6,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kd3_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd3_scrollbar_update)
-        kd3_scrollbar.grid(row=19,column=6,columnspan=2,
+        kd3_scrollbar.grid(row=19,column=6,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kds[2] = tk.DoubleVar(self.tab)
         kd3_entry = ttk.Entry(self.tab,textvariable=self.kds[2])
         kd3_entry.bind("<Return>",self.kd3_entry_update)
-        kd3_entry.grid(row=19,column=8,
+        kd3_entry.grid(row=19,column=7,
             sticky=tk.E+tk.W,padx=10)
 
         # PID #4
         pid_4_label = ttk.Label(self.tab, anchor=tk.W,
             text='PID Controller #4',foreground='cyan4')
-        pid_4_label.grid(row=12,rowspan=2,column=10,columnspan=2,
+        pid_4_label.grid(row=12,rowspan=2,column=9,columnspan=1,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         self.controller4_enabled = tk.BooleanVar()
         self.controller4_enabled.set(True)
         controller4_checkbox = ttk.Checkbutton(self.tab,
             var=self.controller4_enabled, command=self.enable_controller4)
-        controller4_checkbox.grid(row=12,rowspan=2,column=9,columnspan=1,
+        controller4_checkbox.grid(row=12,rowspan=2,column=8,columnspan=1,
             stick=tk.E, padx=5,pady=5,ipadx=5,ipady=5)
         kp_4_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Proportional Gain',foreground='cyan4')
-        kp_4_label.grid(row=14,rowspan=1,column=9,columnspan=3,
+        kp_4_label.grid(row=14,rowspan=1,column=8,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kp4_scrollbar = ttk.Scale(self.tab,from_=self.kp_low, to=self.kp_high,
             command=self.kp4_scrollbar_update)
-        kp4_scrollbar.grid(row=15,column=9,columnspan=2,
+        kp4_scrollbar.grid(row=15,column=8,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kps[3] = tk.DoubleVar(self.tab)
         kp4_entry = ttk.Entry(self.tab,textvariable=self.kps[3])
         kp4_entry.bind("<Return>",self.kp4_entry_update)
-        kp4_entry.grid(row=15,column=11,
+        kp4_entry.grid(row=15,column=9,
             sticky=tk.E+tk.W,padx=10)
         ki_4_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Integral Gain',foreground='cyan4')
-        ki_4_label.grid(row=16,rowspan=1,column=9,columnspan=3,
+        ki_4_label.grid(row=16,rowspan=1,column=8,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         ki4_scrollbar = ttk.Scale(self.tab,from_=self.ki_low, to=self.ki_high,
             command=self.ki4_scrollbar_update)
-        ki4_scrollbar.grid(row=17,column=9,columnspan=2,
+        ki4_scrollbar.grid(row=17,column=8,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kis[3] = tk.DoubleVar(self.tab)
         ki4_entry = ttk.Entry(self.tab,textvariable=self.kis[3])
         ki4_entry.bind("<Return>",self.ki4_entry_update)
-        ki4_entry.grid(row=17,column=11,
+        ki4_entry.grid(row=17,column=9,
             sticky=tk.E+tk.W,padx=10)
         kd_4_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Derivative Gain',foreground='cyan4')
-        kd_4_label.grid(row=18,rowspan=1,column=9,columnspan=3,
+        kd_4_label.grid(row=18,rowspan=1,column=8,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kd4_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd4_scrollbar_update)
-        kd4_scrollbar.grid(row=19,column=9,columnspan=2,
+        kd4_scrollbar.grid(row=19,column=8,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kds[3] = tk.DoubleVar(self.tab)
         kd4_entry = ttk.Entry(self.tab,textvariable=self.kds[3])
         kd4_entry.bind("<Return>",self.kd4_entry_update)
-        kd4_entry.grid(row=19,column=11,
+        kd4_entry.grid(row=19,column=9,
             sticky=tk.E+tk.W,padx=10)
 
         self.kp_scrollbars = [kp1_scrollbar,kp2_scrollbar,kp3_scrollbar,kp4_scrollbar]
