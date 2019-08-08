@@ -228,7 +228,7 @@ class Tab():
         self.kis = [0, 0, 0, 0]
 
         self.kd_low = 0.0
-        self.kd_high = 0.01
+        self.kd_high = 0.25
         self.kds = [0, 0, 0, 0]
 
         #setup controllers
