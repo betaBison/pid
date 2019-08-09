@@ -3,10 +3,6 @@ Author: Derek Knowles
 Date: 7.2019
 Description: PID control template
 '''
-"""
-todo:
-- add feed forward
-"""
 
 import warnings
 warnings.filterwarnings("error")
@@ -28,6 +24,7 @@ class PID():
         self.previous_state_error = 0.0
         self.state_derivative = 0.0
         self.error_derivative = 0.0
+        self.feed_forward = 0.0
 
     def update(self,current_state,desired_state,dt):
         # calculate current error
@@ -42,23 +39,25 @@ class PID():
         else:
             self.state_derivative = self.calculate_state_derivative(current_state, dt)
 
-
         # calculate  command
         try:
             if self.kd_error:
                 command = current_state + self.kp * state_error \
                     + self.ki * self.integrator \
-                    + self.kd * self.error_derivative
+                    + self.kd * self.error_derivative \
+                    + self.feed_forward
             else:
                 command = current_state + self.kp * state_error \
                     + self.ki * self.integrator \
-                    - self.kd * self.state_derivative
+                    - self.kd * self.state_derivative \
+                    + self.feed_forward
 
         except RuntimeWarning as warn:
             self.reset()
             self.kp = 0.0
             self.ki = 0.0
             self.kd = 0.0
+            self.feed_forward = 0.0
             command = 0.0
 
 
@@ -80,6 +79,7 @@ class PID():
             self.kp = 0.0
             self.ki = 0.0
             self.kd = 0.0
+            self.feed_forward = 0.0
             error_derivative_updated = 0.0
         return error_derivative_updated
 
@@ -95,6 +95,7 @@ class PID():
             self.kp = 0.0
             self.ki = 0.0
             self.kd = 0.0
+            self.feed_forward = 0.0
             state_derivative_updated = 0.0
         return state_derivative_updated
 

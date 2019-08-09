@@ -25,9 +25,7 @@ from matplotlib.figure import Figure
 import matplotlib.animation as animation
 from matplotlib import style
 style.use('ggplot')
-
 from PyQt5.QtWidgets import QApplication
-
 import random
 
 
@@ -49,7 +47,7 @@ class Tab():
         # makes resizing possible
         for x in range(10):
             tk.Grid.columnconfigure(self.tab,x,weight=1)
-        for y in range(21):
+        for y in range(23):
             tk.Grid.rowconfigure(self.tab,y,weight=1)
 
         self.figure_setup()
@@ -252,6 +250,10 @@ class Tab():
         self.kd_high = 0.25
         self.kds = [0, 0, 0, 0]
 
+        self.feed_forward_low = -5.0
+        self.feed_forward_high = 5.0
+        self.feed_forwards = [0, 0, 0, 0]
+
         #setup controllers
         self.controller1 = PID(self.kps[0],self.kis[0],self.kds[0])
         self.controller2 = PID(self.kps[1],self.kis[1],self.kds[1])
@@ -335,6 +337,7 @@ class Tab():
         self.controller1.kp = float(value)
         self.controller1.ki = self.ki_scrollbars[0].get()
         self.controller1.kd = self.kd_scrollbars[0].get()
+        self.controller1.feed_forward = self.feed_forward_scrollbars[0].get()
         self.controller_update(self.controller1,self.controller1_result)
         self.draw()
 
@@ -351,6 +354,7 @@ class Tab():
         self.controller2.kp = float(value)
         self.controller2.ki = self.ki_scrollbars[1].get()
         self.controller2.kd = self.kd_scrollbars[1].get()
+        self.controller2.feed_forward = self.feed_forward_scrollbars[1].get()
         self.controller_update(self.controller2,self.controller2_result)
         self.draw()
 
@@ -367,6 +371,7 @@ class Tab():
         self.controller3.kp = float(value)
         self.controller3.ki = self.ki_scrollbars[2].get()
         self.controller3.kd = self.kd_scrollbars[2].get()
+        self.controller3.feed_forward = self.feed_forward_scrollbars[2].get()
         self.controller_update(self.controller3,self.controller3_result)
         self.draw()
 
@@ -383,6 +388,7 @@ class Tab():
         self.controller4.kp = float(value)
         self.controller4.ki = self.ki_scrollbars[3].get()
         self.controller4.kd = self.kd_scrollbars[3].get()
+        self.controller4.feed_forward = self.feed_forward_scrollbars[3].get()
         self.controller_update(self.controller4,self.controller4_result)
         self.draw()
 
@@ -399,6 +405,7 @@ class Tab():
         self.controller1.kp = self.kp_scrollbars[0].get()
         self.controller1.ki = float(value)
         self.controller1.kd = self.kd_scrollbars[0].get()
+        self.controller1.feed_forward = self.feed_forward_scrollbars[0].get()
         self.controller_update(self.controller1,self.controller1_result)
         self.draw()
 
@@ -415,6 +422,7 @@ class Tab():
         self.controller2.kp = self.kp_scrollbars[1].get()
         self.controller2.ki = float(value)
         self.controller2.kd = self.kd_scrollbars[1].get()
+        self.controller2.feed_forward = self.feed_forward_scrollbars[1].get()
         self.controller_update(self.controller2,self.controller2_result)
         self.draw()
 
@@ -431,6 +439,7 @@ class Tab():
         self.controller3.kp = self.kp_scrollbars[2].get()
         self.controller3.ki = float(value)
         self.controller3.kd = self.kd_scrollbars[2].get()
+        self.controller3.feed_forward = self.feed_forward_scrollbars[2].get()
         self.controller_update(self.controller3,self.controller3_result)
         self.draw()
 
@@ -447,6 +456,7 @@ class Tab():
         self.controller4.kp = self.kp_scrollbars[3].get()
         self.controller4.ki = float(value)
         self.controller4.kd = self.kd_scrollbars[3].get()
+        self.controller4.feed_forward = self.feed_forward_scrollbars[3].get()
         self.controller_update(self.controller4,self.controller4_result)
         self.draw()
 
@@ -463,6 +473,7 @@ class Tab():
         self.controller1.kp = self.kp_scrollbars[0].get()
         self.controller1.ki = self.ki_scrollbars[0].get()
         self.controller1.kd = float(value)
+        self.controller1.feed_forward = self.feed_forward_scrollbars[0].get()
         self.controller_update(self.controller1,self.controller1_result)
         self.draw()
 
@@ -479,6 +490,7 @@ class Tab():
         self.controller2.kp = self.kp_scrollbars[1].get()
         self.controller2.ki = self.ki_scrollbars[1].get()
         self.controller2.kd = float(value)
+        self.controller2.feed_forward = self.feed_forward_scrollbars[1].get()
         self.controller_update(self.controller2,self.controller2_result)
         self.draw()
 
@@ -495,6 +507,7 @@ class Tab():
         self.controller3.kp = self.kp_scrollbars[2].get()
         self.controller3.ki = self.ki_scrollbars[2].get()
         self.controller3.kd = float(value)
+        self.controller3.feed_forward = self.feed_forward_scrollbars[2].get()
         self.controller_update(self.controller3,self.controller3_result)
         self.draw()
 
@@ -511,6 +524,7 @@ class Tab():
         self.controller4.kp = self.kp_scrollbars[3].get()
         self.controller4.ki = self.ki_scrollbars[3].get()
         self.controller4.kd = float(value)
+        self.controller4.feed_forward = self.feed_forward_scrollbars[3].get()
         self.controller_update(self.controller4,self.controller4_result)
         self.draw()
 
@@ -541,6 +555,74 @@ class Tab():
         self.controller4.kd_error = self.kd4_type.get()
         self.controller_update(self.controller4,self.controller4_result)
         self.draw()
+
+    def feed_forward_1_scrollbar_update(self,value):
+        self.feed_forwards[0].set(value)
+        self.controller1.kp = self.kp_scrollbars[0].get()
+        self.controller1.ki = self.ki_scrollbars[0].get()
+        self.controller1.kd = self.kd_scrollbars[0].get()
+        self.controller1.feed_forward = float(value)
+        self.controller_update(self.controller1,self.controller1_result)
+        self.draw()
+
+    def feed_forward_1_entry_update(self,event):
+        try:
+            entry = float(self.feed_forward_entry[0].get())
+            value = np.clip(entry,self.feed_forward_low,self.feed_forward_high)
+            self.feed_forward_scrollbars[0].set(float(value))
+        except ValueError:
+            self.feed_forwards[0].set(self.controller1.feed_forward)
+
+    def feed_forward_2_scrollbar_update(self,value):
+        self.feed_forwards[1].set(value)
+        self.controller2.kp = self.kp_scrollbars[1].get()
+        self.controller2.ki = self.ki_scrollbars[1].get()
+        self.controller2.kd = self.kd_scrollbars[1].get()
+        self.controller2.feed_forward = float(value)
+        self.controller_update(self.controller2,self.controller2_result)
+        self.draw()
+
+    def feed_forward_2_entry_update(self,event):
+        try:
+            entry = float(self.feed_forward_entry[1].get())
+            value = np.clip(entry,self.feed_forward_low,self.feed_forward_high)
+            self.feed_forward_scrollbars[1].set(float(value))
+        except ValueError:
+            self.feed_forwards[1].set(self.controller2.feed_forward)
+
+    def feed_forward_3_scrollbar_update(self,value):
+        self.feed_forwards[2].set(value)
+        self.controller3.kp = self.kp_scrollbars[2].get()
+        self.controller3.ki = self.ki_scrollbars[2].get()
+        self.controller3.kd = self.kd_scrollbars[2].get()
+        self.controller3.feed_forward = float(value)
+        self.controller_update(self.controller3,self.controller3_result)
+        self.draw()
+
+    def feed_forward_3_entry_update(self,event):
+        try:
+            entry = float(self.feed_forward_entry[2].get())
+            value = np.clip(entry,self.feed_forward_low,self.feed_forward_high)
+            self.feed_forward_scrollbars[2].set(float(value))
+        except ValueError:
+            self.feed_forwards[2].set(self.controller3.feed_forward)
+
+    def feed_forward_4_scrollbar_update(self,value):
+        self.feed_forwards[3].set(value)
+        self.controller4.kp = self.kp_scrollbars[3].get()
+        self.controller4.ki = self.ki_scrollbars[3].get()
+        self.controller4.kd = self.kd_scrollbars[3].get()
+        self.controller4.feed_forward = float(value)
+        self.controller_update(self.controller4,self.controller4_result)
+        self.draw()
+
+    def feed_forward_4_entry_update(self,event):
+        try:
+            entry = float(self.feed_forward_entry[3].get())
+            value = np.clip(entry,self.feed_forward_low,self.feed_forward_high)
+            self.feed_forward_scrollbars[3].set(float(value))
+        except ValueError:
+            self.feed_forwards[3].set(self.controller4.feed_forward)
 
     def enable_controller1(self):
         if self.controller1_enabled.get():
@@ -693,6 +775,21 @@ class Tab():
         kd1_entry.bind("<Return>",self.kd1_entry_update)
         kd1_entry.grid(row=20,column=3,
             sticky=tk.E+tk.W,padx=10)
+        feed_forward_1_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Feed Forward',foreground='orange red')
+        feed_forward_1_label.grid(row=21,rowspan=1,column=2,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        feed_forward_1_scrollbar = ttk.Scale(self.tab,
+            from_=self.feed_forward_low, to=self.feed_forward_high,
+            command=self.feed_forward_1_scrollbar_update)
+        feed_forward_1_scrollbar.grid(row=23,column=2,columnspan=1,
+            sticky=tk.E+tk.W,padx=10)
+        self.feed_forwards[0] = tk.DoubleVar(self.tab)
+        feed_forward_1_entry = ttk.Entry(self.tab,
+            textvariable=self.feed_forwards[0])
+        feed_forward_1_entry.bind("<Return>",self.feed_forward_1_entry_update)
+        feed_forward_1_entry.grid(row=23,column=3,
+            sticky=tk.E+tk.W,padx=10)
 
 
         # PID #2
@@ -756,6 +853,21 @@ class Tab():
         kd2_entry = ttk.Entry(self.tab,textvariable=self.kds[1])
         kd2_entry.bind("<Return>",self.kd2_entry_update)
         kd2_entry.grid(row=20,column=5,
+            sticky=tk.E+tk.W,padx=10)
+        feed_forward_2_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Feed Forward',foreground='goldenrod')
+        feed_forward_2_label.grid(row=21,rowspan=1,column=4,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        feed_forward_2_scrollbar = ttk.Scale(self.tab,
+            from_=self.feed_forward_low, to=self.feed_forward_high,
+            command=self.feed_forward_2_scrollbar_update)
+        feed_forward_2_scrollbar.grid(row=23,column=4,columnspan=1,
+            sticky=tk.E+tk.W,padx=10)
+        self.feed_forwards[1] = tk.DoubleVar(self.tab)
+        feed_forward_2_entry = ttk.Entry(self.tab,
+            textvariable=self.feed_forwards[1])
+        feed_forward_2_entry.bind("<Return>",self.feed_forward_2_entry_update)
+        feed_forward_2_entry.grid(row=23,column=5,
             sticky=tk.E+tk.W,padx=10)
 
 
@@ -821,6 +933,21 @@ class Tab():
         kd3_entry.bind("<Return>",self.kd3_entry_update)
         kd3_entry.grid(row=20,column=7,
             sticky=tk.E+tk.W,padx=10)
+        feed_forward_3_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Feed Forward',foreground='DodgerBlue2')
+        feed_forward_3_label.grid(row=21,rowspan=1,column=6,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        feed_forward_3_scrollbar = ttk.Scale(self.tab,
+            from_=self.feed_forward_low, to=self.feed_forward_high,
+            command=self.feed_forward_3_scrollbar_update)
+        feed_forward_3_scrollbar.grid(row=23,column=6,columnspan=1,
+            sticky=tk.E+tk.W,padx=10)
+        self.feed_forwards[2] = tk.DoubleVar(self.tab)
+        feed_forward_3_entry = ttk.Entry(self.tab,
+            textvariable=self.feed_forwards[2])
+        feed_forward_3_entry.bind("<Return>",self.feed_forward_3_entry_update)
+        feed_forward_3_entry.grid(row=23,column=7,
+            sticky=tk.E+tk.W,padx=10)
 
         # PID #4
         pid_4_label = ttk.Label(self.tab, anchor=tk.W,
@@ -884,6 +1011,21 @@ class Tab():
         kd4_entry.bind("<Return>",self.kd4_entry_update)
         kd4_entry.grid(row=20,column=9,
             sticky=tk.E+tk.W,padx=10)
+        feed_forward_4_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Feed Forward',foreground='cyan4')
+        feed_forward_4_label.grid(row=21,rowspan=1,column=8,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        feed_forward_4_scrollbar = ttk.Scale(self.tab,
+            from_=self.feed_forward_low, to=self.feed_forward_high,
+            command=self.feed_forward_4_scrollbar_update)
+        feed_forward_4_scrollbar.grid(row=23,column=8,columnspan=1,
+            sticky=tk.E+tk.W,padx=10)
+        self.feed_forwards[3] = tk.DoubleVar(self.tab)
+        feed_forward_4_entry = ttk.Entry(self.tab,
+            textvariable=self.feed_forwards[3])
+        feed_forward_4_entry.bind("<Return>",self.feed_forward_4_entry_update)
+        feed_forward_4_entry.grid(row=23,column=9,
+            sticky=tk.E+tk.W,padx=10)
 
         self.kp_scrollbars = [kp1_scrollbar,kp2_scrollbar,kp3_scrollbar,kp4_scrollbar]
         self.kp_entry = [kp1_entry,kp2_entry,kp3_entry,kp4_entry]
@@ -893,3 +1035,6 @@ class Tab():
 
         self.kd_scrollbars = [kd1_scrollbar,kd2_scrollbar,kd3_scrollbar,kd4_scrollbar]
         self.kd_entry = [kd1_entry,kd2_entry,kd3_entry,kd4_entry]
+
+        self.feed_forward_scrollbars = [feed_forward_1_scrollbar,feed_forward_2_scrollbar,feed_forward_3_scrollbar,feed_forward_4_scrollbar]
+        self.feed_forward_entry = [feed_forward_1_entry,feed_forward_2_entry,feed_forward_3_entry,feed_forward_4_entry]
