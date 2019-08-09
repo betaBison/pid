@@ -6,7 +6,7 @@ Description: Simple PID control GUI
 
 """
 todo:
-- add setpoint variable: noise
+- add controller variable: noise
 """
 
 import sys

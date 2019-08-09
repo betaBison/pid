@@ -108,8 +108,13 @@ class Tab():
         self.steady_state_high = 1.5
         self.steady_state_error = 0.0
 
+        self.noise_sigma_low = 0.0
+        self.noise_sigma_high = 1.0
+        self.noise_sigma = 0.0
+
         # create setpoint list
         self.setpoint = np.ones((self.time_length,1))
+        self.setpoint_with_noise = np.ones((self.time_length,1))
         #  0% - 10% =  0.0
         self.setpoint[0:int(0.1*self.time_length)] *= 0.0
         # 10% - 20% =  1.0
@@ -131,6 +136,8 @@ class Tab():
         # 90% -100% =  0.0
         self.setpoint[int(0.9*self.time_length):] *= -0.0
 
+        self.setpoint_noise_update()
+
     def setpoint_setup_ramp(self):
         self.hz = 100.0         # time frequency
         self.time_start = 0.0   # start time
@@ -145,8 +152,13 @@ class Tab():
         self.steady_state_high = 1.5
         self.steady_state_error = 0.0
 
+        self.noise_sigma_low = 0.0
+        self.noise_sigma_high = 1.0
+        self.noise_sigma = 0.0
+
         # create setpoint list
         self.setpoint = np.ones((self.time_length,1))
+        self.setpoint_with_noise = np.ones((self.time_length,1))
         #  0% - 10% =  0.0
         self.setpoint[0:int(0.1*self.time_length)] *= 0.0
         # 10% - 20% =  1.0 ramp
@@ -186,6 +198,8 @@ class Tab():
         # 90% -100% =  0.0
         self.setpoint[int(0.9*self.time_length):] *= -0.0
 
+        self.setpoint_noise_update()
+
     def setpoint_setup_quadratic(self):
         self.hz = 100.0         # time frequency
         self.time_start = 0.0   # start time
@@ -200,8 +214,13 @@ class Tab():
         self.steady_state_high = 1.5
         self.steady_state_error = 0.0
 
+        self.noise_sigma_low = 0.0
+        self.noise_sigma_high = 1.0
+        self.noise_sigma = 0.0
+
         # create setpoint list
         self.setpoint = np.ones((self.time_length,1))
+        self.setpoint_with_noise = np.ones((self.time_length,1))
         #  0% - 10% =  0.0
         self.setpoint[0:int(0.1*self.time_length)] *= 0.0
         # 10% - 20% =  1.0 parabola
@@ -228,6 +247,13 @@ class Tab():
             self.setpoint[ii] = 12.0 * (self.time[ii] - 8.5)**2 - 3.0
         # 90% -100% =  0.0
         self.setpoint[int(0.9*self.time_length):] *= -0.0
+
+        self.setpoint_noise_update()
+
+    def setpoint_noise_update(self):
+        for ii in range(self.time_length):
+            self.setpoint_with_noise[ii] = self.setpoint[ii] \
+                + self.noise_sigma*np.random.randn()
 
     def controller_setup(self):
 
@@ -286,7 +312,8 @@ class Tab():
     def controller_update(self,controller,result):
         controller.reset()
         for ii in range(1,self.time_length):
-            result[ii] = controller.update(result[ii-1],self.setpoint[ii],self.dt) \
+            result[ii] = controller.update(result[ii-1],
+                self.setpoint_with_noise[ii],self.dt) \
                 + self.steady_state_error
 
     def draw(self):
@@ -294,7 +321,7 @@ class Tab():
         self.my_plot.clear() # clear the graph
 
         # plot the setpoint
-        self.my_plot.plot(self.time,self.setpoint
+        self.my_plot.plot(self.time,self.setpoint_with_noise
             ,color='xkcd:indigo')
 
         # plot the controllers
@@ -331,6 +358,24 @@ class Tab():
             self.steady_state_scrollbar.set(float(value))
         except ValueError:
             self.steady_state.set(self.steady_state_error)
+
+    def noise_sigma_scrollbar_update(self,value):
+        self.noise_sigma_var.set(value)
+        self.noise_sigma = float(value)
+        self.setpoint_noise_update()
+        self.controller_update(self.controller1,self.controller1_result)
+        self.controller_update(self.controller2,self.controller2_result)
+        self.controller_update(self.controller3,self.controller3_result)
+        self.controller_update(self.controller4,self.controller4_result)
+        self.draw()
+
+    def noise_sigma_entry_update(self,event):
+        try:
+            entry = float(self.noise_sigma_entry.get())
+            value = np.clip(entry,self.noise_sigma_low,self.noise_sigma_high)
+            self.noise_sigma_scrollbar.set(float(value))
+        except ValueError:
+            self.noise_sigma_var.set(self.noise_sigma)
 
     def kp1_scrollbar_update(self,value):
         self.kps[0].set(value)
@@ -711,6 +756,20 @@ class Tab():
         self.steady_state_entry = ttk.Entry(self.tab,textvariable=self.steady_state)
         self.steady_state_entry.bind("<Return>",self.steady_state_entry_update)
         self.steady_state_entry.grid(row=15,column=1,columnspan=1,
+            sticky=tk.E+tk.W,padx=10)
+        noise_sigma_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Noise Sigma',foreground='midnight blue')
+        noise_sigma_label.grid(row=16,rowspan=1,column=0,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.noise_sigma_scrollbar = ttk.Scale(self.tab,
+            from_=self.noise_sigma_low, to=self.noise_sigma_high,
+            command=self.noise_sigma_scrollbar_update)
+        self.noise_sigma_scrollbar.grid(row=17,column=0,columnspan=1,
+            sticky=tk.E+tk.W,padx=10)
+        self.noise_sigma_var = tk.DoubleVar(self.tab)
+        self.noise_sigma_entry = ttk.Entry(self.tab,textvariable=self.noise_sigma_var)
+        self.noise_sigma_entry.bind("<Return>",self.noise_sigma_entry_update)
+        self.noise_sigma_entry.grid(row=17,column=1,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
 
         # PID # 1
