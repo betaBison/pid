@@ -43,6 +43,9 @@ class Gui(tk.Frame):
         self.notebook = ttk.Notebook(self.master)
         self.notebook.pack(fill=tk.BOTH,expand=1)
 
+        # ------------------ KEY BINDINGS ---------------------#
+        self.master.bind("<Escape>",self.close_window)
+
         # -----------------_- STEP INPUT  _--------------------#
         Tab(self.master,self.notebook,"STEP")
 
@@ -51,9 +54,6 @@ class Gui(tk.Frame):
 
         # -----------------_- STEP INPUT  _--------------------#
         Tab(self.master,self.notebook,"QUADRATIC")
-
-        # ------------------ KEY BINDINGS ---------------------#
-        self.master.bind("<Escape>",self.close_window)
 
     def close_window(self,event):
         """
