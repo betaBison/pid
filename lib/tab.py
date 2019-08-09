@@ -38,6 +38,9 @@ class Tab():
     def __init__(self, master, notebook, type):
         self.master = master # gui master handle
         self.notebook = notebook
+        self.type = type
+        self.initialized = False
+
 
         self.tab = ttk.Frame(self.notebook)
         tab_name = type + " INPUT"
@@ -51,14 +54,20 @@ class Tab():
 
         self.figure_setup()
 
-        if type == "STEP":
+    def run(self):
+        if not(self.initialized):
+            self.initialize()
+            self.initialized = True
+
+    def initialize(self):
+        if self.type == "STEP":
             self.setpoint_setup_step()
-        elif type == "RAMP":
+        elif self.type == "RAMP":
             self.setpoint_setup_ramp()
-        elif type == "QUADRATIC":
+        elif self.type == "QUADRATIC":
             self.setpoint_setup_quadratic()
         else:
-            print('need valid input type',type)
+            sys.exit('need valid input type (STEP, RAMP, etc.)')
 
         self.controller_setup()
 

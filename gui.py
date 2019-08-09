@@ -7,7 +7,6 @@ Description: Simple PID control GUI
 """
 todo:
 - add setpoint variable: noise
-- load tabs when first opened, not all at begining
 """
 
 import sys
@@ -44,15 +43,30 @@ class Gui(tk.Frame):
 
         # ------------------ KEY BINDINGS ---------------------#
         self.master.bind("<Escape>",self.close_window)
+        self.master.bind("<<NotebookTabChanged>>",self.tab_change)
+
 
         # -----------------_- STEP INPUT  _--------------------#
-        Tab(self.master,self.notebook,"STEP")
+        self.tab0 = Tab(self.master,self.notebook,"STEP")
 
         # -----------------_- STEP INPUT  _--------------------#
-        Tab(self.master,self.notebook,"RAMP")
+        self.tab1 = Tab(self.master,self.notebook,"RAMP")
 
         # -----------------_- STEP INPUT  _--------------------#
-        Tab(self.master,self.notebook,"QUADRATIC")
+        self.tab2 = Tab(self.master,self.notebook,"QUADRATIC")
+
+    def tab_change(self, event):
+        """
+        runs whenever the tab is changed in the gui
+        """
+        active_tab = self.notebook.index(self.notebook.select())
+
+        if active_tab == 0:
+            self.tab0.run()
+        elif active_tab == 1:
+            self.tab1.run()
+        elif active_tab == 2:
+            self.tab2.run()
 
     def close_window(self,event):
         """
