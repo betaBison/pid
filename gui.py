@@ -7,7 +7,6 @@ Description: Simple PID control GUI
 """
 todo:
 - add setpoint variable: noise
-- add error vs state derivative buttons
 - load tabs when first opened, not all at begining
 """
 

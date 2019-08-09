@@ -46,7 +46,7 @@ class Tab():
         # makes resizing possible
         for x in range(10):
             tk.Grid.columnconfigure(self.tab,x,weight=1)
-        for y in range(20):
+        for y in range(21):
             tk.Grid.rowconfigure(self.tab,y,weight=1)
 
         self.figure_setup()
@@ -262,7 +262,7 @@ class Tab():
     def random_initialization(self):
         for ii in range(4):
             random_kp = self.random_number(self.kp_low + 0.2*(self.kp_high - self.kp_low)
-                ,self.kp_high)
+                ,self.kp_low + 0.8*(self.kp_high - self.kp_low))
             self.kps[ii].set(random_kp)
             self.kp_scrollbars[ii].set(random_kp)
             random_ki = self.random_number(self.ki_low,self.ki_high)
@@ -513,6 +513,26 @@ class Tab():
         except ValueError:
             self.kds[3].set(self.controller4.kd)
 
+    def kd1_type_update(self):
+        self.controller1.kd_error = self.kd1_type.get()
+        self.controller_update(self.controller1,self.controller1_result)
+        self.draw()
+
+    def kd2_type_update(self):
+        self.controller2.kd_error = self.kd2_type.get()
+        self.controller_update(self.controller2,self.controller2_result)
+        self.draw()
+
+    def kd3_type_update(self):
+        self.controller3.kd_error = self.kd3_type.get()
+        self.controller_update(self.controller3,self.controller3_result)
+        self.draw()
+
+    def kd4_type_update(self):
+        self.controller4.kd_error = self.kd4_type.get()
+        self.controller_update(self.controller4,self.controller4_result)
+        self.draw()
+
     def enable_controller1(self):
         if self.controller1_enabled.get():
             self.kp_scrollbars[0].state(["!disabled"])
@@ -643,14 +663,26 @@ class Tab():
             text='Derivative Gain',foreground='orange red')
         kd_1_label.grid(row=18,rowspan=1,column=2,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.kd1_type = tk.BooleanVar()
+        self.kd1_type.set(True)
+        self.kd1_type_error = ttk.Radiobutton(self.tab, text="error derivative",
+            value=True, variable=self.kd1_type,
+            command=self.kd1_type_update)
+        self.kd1_type_error.grid(row=19,rowspan=1,column=2,columnspan=1,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.kd1_type_state = ttk.Radiobutton(self.tab, text="state derivative",
+            value = False, variable=self.kd1_type,
+            command=self.kd1_type_update)
+        self.kd1_type_state.grid(row=19,rowspan=1,column=3,columnspan=1,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kd1_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd1_scrollbar_update)
-        kd1_scrollbar.grid(row=19,column=2,columnspan=1,
+        kd1_scrollbar.grid(row=20,column=2,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kds[0] = tk.DoubleVar(self.tab)
         kd1_entry = ttk.Entry(self.tab,textvariable=self.kds[0])
         kd1_entry.bind("<Return>",self.kd1_entry_update)
-        kd1_entry.grid(row=19,column=3,
+        kd1_entry.grid(row=20,column=3,
             sticky=tk.E+tk.W,padx=10)
 
 
@@ -695,14 +727,26 @@ class Tab():
             text='Derivative Gain',foreground='goldenrod')
         kd_2_label.grid(row=18,rowspan=1,column=4,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.kd2_type = tk.BooleanVar()
+        self.kd2_type.set(True)
+        self.kd2_type_error = ttk.Radiobutton(self.tab, text="error derivative",
+            value=True, variable=self.kd2_type,
+            command=self.kd2_type_update)
+        self.kd2_type_error.grid(row=19,rowspan=1,column=4,columnspan=1,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.kd2_type_state = ttk.Radiobutton(self.tab, text="state derivative",
+            value = False, variable=self.kd2_type,
+            command=self.kd2_type_update)
+        self.kd2_type_state.grid(row=19,rowspan=1,column=5,columnspan=1,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kd2_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd2_scrollbar_update)
-        kd2_scrollbar.grid(row=19,column=4,columnspan=1,
+        kd2_scrollbar.grid(row=20,column=4,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kds[1] = tk.DoubleVar(self.tab)
         kd2_entry = ttk.Entry(self.tab,textvariable=self.kds[1])
         kd2_entry.bind("<Return>",self.kd2_entry_update)
-        kd2_entry.grid(row=19,column=5,
+        kd2_entry.grid(row=20,column=5,
             sticky=tk.E+tk.W,padx=10)
 
 
@@ -747,14 +791,26 @@ class Tab():
             text='Derivative Gain',foreground='DodgerBlue2')
         kd_3_label.grid(row=18,rowspan=1,column=6,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.kd3_type = tk.BooleanVar()
+        self.kd3_type.set(True)
+        self.kd3_type_error = ttk.Radiobutton(self.tab, text="error derivative",
+            value=True, variable=self.kd3_type,
+            command=self.kd3_type_update)
+        self.kd3_type_error.grid(row=19,rowspan=1,column=6,columnspan=1,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.kd3_type_state = ttk.Radiobutton(self.tab, text="state derivative",
+            value = False, variable=self.kd3_type,
+            command=self.kd3_type_update)
+        self.kd3_type_state.grid(row=19,rowspan=1,column=7,columnspan=1,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kd3_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd3_scrollbar_update)
-        kd3_scrollbar.grid(row=19,column=6,columnspan=1,
+        kd3_scrollbar.grid(row=20,column=6,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kds[2] = tk.DoubleVar(self.tab)
         kd3_entry = ttk.Entry(self.tab,textvariable=self.kds[2])
         kd3_entry.bind("<Return>",self.kd3_entry_update)
-        kd3_entry.grid(row=19,column=7,
+        kd3_entry.grid(row=20,column=7,
             sticky=tk.E+tk.W,padx=10)
 
         # PID #4
@@ -798,14 +854,26 @@ class Tab():
             text='Derivative Gain',foreground='cyan4')
         kd_4_label.grid(row=18,rowspan=1,column=8,columnspan=2,
             sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.kd4_type = tk.BooleanVar()
+        self.kd4_type.set(True)
+        self.kd4_type_error = ttk.Radiobutton(self.tab, text="error derivative",
+            value=True, variable=self.kd4_type,
+            command=self.kd4_type_update)
+        self.kd4_type_error.grid(row=19,rowspan=1,column=8,columnspan=1,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        self.kd4_type_state = ttk.Radiobutton(self.tab, text="state derivative",
+            value = False, variable=self.kd4_type,
+            command=self.kd4_type_update)
+        self.kd4_type_state.grid(row=19,rowspan=1,column=9,columnspan=1,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
         kd4_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd4_scrollbar_update)
-        kd4_scrollbar.grid(row=19,column=8,columnspan=1,
+        kd4_scrollbar.grid(row=20,column=8,columnspan=1,
             sticky=tk.E+tk.W,padx=10)
         self.kds[3] = tk.DoubleVar(self.tab)
         kd4_entry = ttk.Entry(self.tab,textvariable=self.kds[3])
         kd4_entry.bind("<Return>",self.kd4_entry_update)
-        kd4_entry.grid(row=19,column=9,
+        kd4_entry.grid(row=20,column=9,
             sticky=tk.E+tk.W,padx=10)
 
         self.kp_scrollbars = [kp1_scrollbar,kp2_scrollbar,kp3_scrollbar,kp4_scrollbar]

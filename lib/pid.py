@@ -15,11 +15,12 @@ class PID():
     '''
     PID control class template
     '''
-    def __init__(self,kp=0.0,ki=0.0,kd=0.0):
+    def __init__(self,kp=0.0,ki=0.0,kd=0.0,kd_error=True):
         # inputs
-        self.kp = kp    # proportional gain
-        self.ki = ki    # integral gain
-        self.kd = kd    # derivative gain
+        self.kp = kp                # proportional gain
+        self.ki = ki                # integral gain
+        self.kd = kd                # derivative gain
+        self.kd_error = kd_error    # use error or state derivative
 
         # intermediaries
         self.integrator = 0.0
@@ -36,16 +37,22 @@ class PID():
         self.integrator += (dt/2.0) * (state_error + self.previous_state_error);
 
         # update derivative
-        self.error_derivative = self.calculate_derivative(state_error, dt)
-        #self.state_derivative = self.calculate_state_derivative(current_state, dt)
+        if self.kd_error:
+            self.error_derivative = self.calculate_derivative(state_error, dt)
+        else:
+            self.state_derivative = self.calculate_state_derivative(current_state, dt)
 
 
         # calculate  command
         try:
-            command = current_state + self.kp * state_error \
-                + self.ki * self.integrator \
-                + self.kd * self.error_derivative
-                #- self.kd * self.state_derivative
+            if self.kd_error:
+                command = current_state + self.kp * state_error \
+                    + self.ki * self.integrator \
+                    + self.kd * self.error_derivative
+            else:
+                command = current_state + self.kp * state_error \
+                    + self.ki * self.integrator \
+                    - self.kd * self.state_derivative
 
         except RuntimeWarning as warn:
             self.reset()
