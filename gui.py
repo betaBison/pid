@@ -4,11 +4,6 @@ Date: 7.2019
 Description: Simple PID control GUI
 '''
 
-"""
-todo:
-- add controller variable: noise
-"""
-
 import sys
 sys.path.append('..')
 

@@ -6,6 +6,7 @@ Description: PID control template
 
 import warnings
 warnings.filterwarnings("error")
+import numpy as np
 
 class PID():
     '''
@@ -25,6 +26,7 @@ class PID():
         self.state_derivative = 0.0
         self.error_derivative = 0.0
         self.feed_forward = 0.0
+        self.noise_sigma = 0.0
 
     def update(self,current_state,desired_state,dt):
         # calculate current error
@@ -45,12 +47,14 @@ class PID():
                 command = current_state + self.kp * state_error \
                     + self.ki * self.integrator \
                     + self.kd * self.error_derivative \
-                    + self.feed_forward
+                    + self.feed_forward \
+                    + self.noise_sigma*np.random.randn()
             else:
                 command = current_state + self.kp * state_error \
                     + self.ki * self.integrator \
                     - self.kd * self.state_derivative \
-                    + self.feed_forward
+                    + self.feed_forward \
+                    + self.noise_sigma*np.random.randn()
 
         except RuntimeWarning as warn:
             self.reset()

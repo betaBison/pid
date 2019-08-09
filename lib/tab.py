@@ -47,7 +47,7 @@ class Tab():
         # makes resizing possible
         for x in range(10):
             tk.Grid.columnconfigure(self.tab,x,weight=1)
-        for y in range(23):
+        for y in range(25):
             tk.Grid.rowconfigure(self.tab,y,weight=1)
 
         self.figure_setup()
@@ -266,25 +266,44 @@ class Tab():
         # setup gains
         self.kp_low = 0.0
         self.kp_high = 2.0
-        self.kps = [0, 0, 0, 0]
+        self.kps = [tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab)]
 
         self.ki_low = 0.0
         self.ki_high = 20.0
-        self.kis = [0, 0, 0, 0]
+        self.kis = [tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab)]
 
         self.kd_low = 0.0
         self.kd_high = 0.25
-        self.kds = [0, 0, 0, 0]
+        self.kds = [tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab),
+                    tk.DoubleVar(self.tab)]
 
         self.feed_forward_low = -5.0
         self.feed_forward_high = 5.0
-        self.feed_forwards = [0, 0, 0, 0]
+        self.feed_forwards = [tk.DoubleVar(self.tab),
+                              tk.DoubleVar(self.tab),
+                              tk.DoubleVar(self.tab),
+                              tk.DoubleVar(self.tab)]
+
+        self.noise_sigma_low    # defined in setpoint_setup_*()
+        self.noise_sigma_high   # defined in setpoint_setup_*()
+        self.noise_sigmas = [tk.DoubleVar(self.tab),
+                              tk.DoubleVar(self.tab),
+                              tk.DoubleVar(self.tab),
+                              tk.DoubleVar(self.tab)]
 
         #setup controllers
-        self.controller1 = PID(self.kps[0],self.kis[0],self.kds[0])
-        self.controller2 = PID(self.kps[1],self.kis[1],self.kds[1])
-        self.controller3 = PID(self.kps[2],self.kis[2],self.kds[2])
-        self.controller4 = PID(self.kps[3],self.kis[3],self.kds[3])
+        self.controller1 = PID(self.kps[0].get(),self.kis[0].get(),self.kds[0].get())
+        self.controller2 = PID(self.kps[1].get(),self.kis[1].get(),self.kds[1].get())
+        self.controller3 = PID(self.kps[2].get(),self.kis[2].get(),self.kds[2].get())
+        self.controller4 = PID(self.kps[3].get(),self.kis[3].get(),self.kds[3].get())
 
         # update results with initialized gains
         self.controller_update(self.controller1,self.controller1_result)
@@ -371,7 +390,7 @@ class Tab():
 
     def noise_sigma_entry_update(self,event):
         try:
-            entry = float(self.noise_sigma_entry.get())
+            entry = float(self.noise_sigma_entries.get())
             value = np.clip(entry,self.noise_sigma_low,self.noise_sigma_high)
             self.noise_sigma_scrollbar.set(float(value))
         except ValueError:
@@ -383,12 +402,13 @@ class Tab():
         self.controller1.ki = self.ki_scrollbars[0].get()
         self.controller1.kd = self.kd_scrollbars[0].get()
         self.controller1.feed_forward = self.feed_forward_scrollbars[0].get()
+        self.controller1.noise_sigma = self.noise_sigma_scrollbars[0].get()
         self.controller_update(self.controller1,self.controller1_result)
         self.draw()
 
     def kp1_entry_update(self,event):
         try:
-            entry = float(self.kp_entry[0].get())
+            entry = float(self.kp_entries[0].get())
             value = np.clip(entry,self.kp_low,self.kp_high)
             self.kp_scrollbars[0].set(float(value))
         except ValueError:
@@ -400,12 +420,13 @@ class Tab():
         self.controller2.ki = self.ki_scrollbars[1].get()
         self.controller2.kd = self.kd_scrollbars[1].get()
         self.controller2.feed_forward = self.feed_forward_scrollbars[1].get()
+        self.controller2.noise_sigma = self.noise_sigma_scrollbars[1].get()
         self.controller_update(self.controller2,self.controller2_result)
         self.draw()
 
     def kp2_entry_update(self,event):
         try:
-            entry = float(self.kp_entry[1].get())
+            entry = float(self.kp_entries[1].get())
             value = np.clip(entry,self.kp_low,self.kp_high)
             self.kp_scrollbars[1].set(float(value))
         except ValueError:
@@ -417,12 +438,13 @@ class Tab():
         self.controller3.ki = self.ki_scrollbars[2].get()
         self.controller3.kd = self.kd_scrollbars[2].get()
         self.controller3.feed_forward = self.feed_forward_scrollbars[2].get()
+        self.controller3.noise_sigma = self.noise_sigma_scrollbars[2].get()
         self.controller_update(self.controller3,self.controller3_result)
         self.draw()
 
     def kp3_entry_update(self,event):
         try:
-            entry = float(self.kp_entry[2].get())
+            entry = float(self.kp_entries[2].get())
             value = np.clip(entry,self.kp_low,self.kp_high)
             self.kp_scrollbars[2].set(float(value))
         except ValueError:
@@ -434,12 +456,13 @@ class Tab():
         self.controller4.ki = self.ki_scrollbars[3].get()
         self.controller4.kd = self.kd_scrollbars[3].get()
         self.controller4.feed_forward = self.feed_forward_scrollbars[3].get()
+        self.controller4.noise_sigma = self.noise_sigma_scrollbars[3].get()
         self.controller_update(self.controller4,self.controller4_result)
         self.draw()
 
     def kp4_entry_update(self,event):
         try:
-            entry = float(self.kp_entry[3].get())
+            entry = float(self.kp_entries[3].get())
             value = np.clip(entry,self.kp_low,self.kp_high)
             self.kp_scrollbars[3].set(float(value))
         except ValueError:
@@ -451,12 +474,13 @@ class Tab():
         self.controller1.ki = float(value)
         self.controller1.kd = self.kd_scrollbars[0].get()
         self.controller1.feed_forward = self.feed_forward_scrollbars[0].get()
+        self.controller1.noise_sigma = self.noise_sigma_scrollbars[0].get()
         self.controller_update(self.controller1,self.controller1_result)
         self.draw()
 
     def ki1_entry_update(self,event):
         try:
-            entry = float(self.ki_entry[0].get())
+            entry = float(self.ki_entries[0].get())
             value = np.clip(entry,self.ki_low,self.ki_high)
             self.ki_scrollbars[0].set(float(value))
         except ValueError:
@@ -468,12 +492,13 @@ class Tab():
         self.controller2.ki = float(value)
         self.controller2.kd = self.kd_scrollbars[1].get()
         self.controller2.feed_forward = self.feed_forward_scrollbars[1].get()
+        self.controller2.noise_sigma = self.noise_sigma_scrollbars[1].get()
         self.controller_update(self.controller2,self.controller2_result)
         self.draw()
 
     def ki2_entry_update(self,event):
         try:
-            entry = float(self.ki_entry[1].get())
+            entry = float(self.ki_entries[1].get())
             value = np.clip(entry,self.ki_low,self.ki_high)
             self.ki_scrollbars[1].set(float(value))
         except ValueError:
@@ -485,12 +510,13 @@ class Tab():
         self.controller3.ki = float(value)
         self.controller3.kd = self.kd_scrollbars[2].get()
         self.controller3.feed_forward = self.feed_forward_scrollbars[2].get()
+        self.controller3.noise_sigma = self.noise_sigma_scrollbars[2].get()
         self.controller_update(self.controller3,self.controller3_result)
         self.draw()
 
     def ki3_entry_update(self,event):
         try:
-            entry = float(self.ki_entry[2].get())
+            entry = float(self.ki_entries[2].get())
             value = np.clip(entry,self.ki_low,self.ki_high)
             self.ki_scrollbars[2].set(float(value))
         except ValueError:
@@ -502,12 +528,13 @@ class Tab():
         self.controller4.ki = float(value)
         self.controller4.kd = self.kd_scrollbars[3].get()
         self.controller4.feed_forward = self.feed_forward_scrollbars[3].get()
+        self.controller4.noise_sigma = self.noise_sigma_scrollbars[3].get()
         self.controller_update(self.controller4,self.controller4_result)
         self.draw()
 
     def ki4_entry_update(self,event):
         try:
-            entry = float(self.ki_entry[3].get())
+            entry = float(self.ki_entries[3].get())
             value = np.clip(entry,self.ki_low,self.ki_high)
             self.ki_scrollbars[3].set(float(value))
         except ValueError:
@@ -519,12 +546,13 @@ class Tab():
         self.controller1.ki = self.ki_scrollbars[0].get()
         self.controller1.kd = float(value)
         self.controller1.feed_forward = self.feed_forward_scrollbars[0].get()
+        self.controller1.noise_sigma = self.noise_sigma_scrollbars[0].get()
         self.controller_update(self.controller1,self.controller1_result)
         self.draw()
 
     def kd1_entry_update(self,event):
         try:
-            entry = float(self.kd_entry[0].get())
+            entry = float(self.kd_entries[0].get())
             value = np.clip(entry,self.kd_low,self.kd_high)
             self.kd_scrollbars[0].set(float(value))
         except ValueError:
@@ -536,12 +564,13 @@ class Tab():
         self.controller2.ki = self.ki_scrollbars[1].get()
         self.controller2.kd = float(value)
         self.controller2.feed_forward = self.feed_forward_scrollbars[1].get()
+        self.controller2.noise_sigma = self.noise_sigma_scrollbars[1].get()
         self.controller_update(self.controller2,self.controller2_result)
         self.draw()
 
     def kd2_entry_update(self,event):
         try:
-            entry = float(self.kd_entry[1].get())
+            entry = float(self.kd_entries[1].get())
             value = np.clip(entry,self.kd_low,self.kd_high)
             self.kd_scrollbars[1].set(float(value))
         except ValueError:
@@ -553,12 +582,13 @@ class Tab():
         self.controller3.ki = self.ki_scrollbars[2].get()
         self.controller3.kd = float(value)
         self.controller3.feed_forward = self.feed_forward_scrollbars[2].get()
+        self.controller3.noise_sigma = self.noise_sigma_scrollbars[2].get()
         self.controller_update(self.controller3,self.controller3_result)
         self.draw()
 
     def kd3_entry_update(self,event):
         try:
-            entry = float(self.kd_entry[2].get())
+            entry = float(self.kd_entries[2].get())
             value = np.clip(entry,self.kd_low,self.kd_high)
             self.kd_scrollbars[2].set(float(value))
         except ValueError:
@@ -570,12 +600,13 @@ class Tab():
         self.controller4.ki = self.ki_scrollbars[3].get()
         self.controller4.kd = float(value)
         self.controller4.feed_forward = self.feed_forward_scrollbars[3].get()
+        self.controller4.noise_sigma = self.noise_sigma_scrollbars[3].get()
         self.controller_update(self.controller4,self.controller4_result)
         self.draw()
 
     def kd4_entry_update(self,event):
         try:
-            entry = float(self.kd_entry[3].get())
+            entry = float(self.kd_entries[3].get())
             value = np.clip(entry,self.kd_low,self.kd_high)
             self.kd_scrollbars[3].set(float(value))
         except ValueError:
@@ -607,12 +638,13 @@ class Tab():
         self.controller1.ki = self.ki_scrollbars[0].get()
         self.controller1.kd = self.kd_scrollbars[0].get()
         self.controller1.feed_forward = float(value)
+        self.controller1.noise_sigma = self.noise_sigma_scrollbars[0].get()
         self.controller_update(self.controller1,self.controller1_result)
         self.draw()
 
     def feed_forward_1_entry_update(self,event):
         try:
-            entry = float(self.feed_forward_entry[0].get())
+            entry = float(self.feed_forward_entries[0].get())
             value = np.clip(entry,self.feed_forward_low,self.feed_forward_high)
             self.feed_forward_scrollbars[0].set(float(value))
         except ValueError:
@@ -624,12 +656,13 @@ class Tab():
         self.controller2.ki = self.ki_scrollbars[1].get()
         self.controller2.kd = self.kd_scrollbars[1].get()
         self.controller2.feed_forward = float(value)
+        self.controller2.noise_sigma = self.noise_sigma_scrollbars[1].get()
         self.controller_update(self.controller2,self.controller2_result)
         self.draw()
 
     def feed_forward_2_entry_update(self,event):
         try:
-            entry = float(self.feed_forward_entry[1].get())
+            entry = float(self.feed_forward_entries[1].get())
             value = np.clip(entry,self.feed_forward_low,self.feed_forward_high)
             self.feed_forward_scrollbars[1].set(float(value))
         except ValueError:
@@ -641,12 +674,13 @@ class Tab():
         self.controller3.ki = self.ki_scrollbars[2].get()
         self.controller3.kd = self.kd_scrollbars[2].get()
         self.controller3.feed_forward = float(value)
+        self.controller3.noise_sigma = self.noise_sigma_scrollbars[2].get()
         self.controller_update(self.controller3,self.controller3_result)
         self.draw()
 
     def feed_forward_3_entry_update(self,event):
         try:
-            entry = float(self.feed_forward_entry[2].get())
+            entry = float(self.feed_forward_entries[2].get())
             value = np.clip(entry,self.feed_forward_low,self.feed_forward_high)
             self.feed_forward_scrollbars[2].set(float(value))
         except ValueError:
@@ -658,83 +692,204 @@ class Tab():
         self.controller4.ki = self.ki_scrollbars[3].get()
         self.controller4.kd = self.kd_scrollbars[3].get()
         self.controller4.feed_forward = float(value)
+        self.controller4.noise_sigma = self.noise_sigma_scrollbars[3].get()
         self.controller_update(self.controller4,self.controller4_result)
         self.draw()
 
     def feed_forward_4_entry_update(self,event):
         try:
-            entry = float(self.feed_forward_entry[3].get())
+            entry = float(self.feed_forward_entries[3].get())
             value = np.clip(entry,self.feed_forward_low,self.feed_forward_high)
             self.feed_forward_scrollbars[3].set(float(value))
         except ValueError:
             self.feed_forwards[3].set(self.controller4.feed_forward)
 
+    def noise_sigma_1_scrollbar_update(self,value):
+        self.noise_sigmas[0].set(value)
+        self.controller1.kp = self.kp_scrollbars[0].get()
+        self.controller1.ki = self.ki_scrollbars[0].get()
+        self.controller1.kd = self.kd_scrollbars[0].get()
+        self.controller1.feed_forward = self.feed_forward_scrollbars[0].get()
+        self.controller1.noise_sigma = float(value)
+        self.controller_update(self.controller1,self.controller1_result)
+        self.draw()
+
+    def noise_sigma_1_entry_update(self,event):
+        try:
+            entry = float(self.noise_sigma_entries[0].get())
+            value = np.clip(entry,self.noise_sigma_low,self.noise_sigma_high)
+            self.noise_sigma_scrollbars[0].set(float(value))
+        except ValueError:
+            self.noise_sigmas[0].set(self.controller1.noise_sigma)
+
+    def noise_sigma_2_scrollbar_update(self,value):
+        self.noise_sigmas[1].set(value)
+        self.controller2.kp = self.kp_scrollbars[1].get()
+        self.controller2.ki = self.ki_scrollbars[1].get()
+        self.controller2.kd = self.kd_scrollbars[1].get()
+        self.controller2.feed_forward = self.feed_forward_scrollbars[1].get()
+        self.controller2.noise_sigma = float(value)
+        self.controller_update(self.controller2,self.controller2_result)
+        self.draw()
+
+    def noise_sigma_2_entry_update(self,event):
+        try:
+            entry = float(self.noise_sigma_entries[1].get())
+            value = np.clip(entry,self.noise_sigma_low,self.noise_sigma_high)
+            self.noise_sigma_scrollbars[1].set(float(value))
+        except ValueError:
+            self.noise_sigmas[1].set(self.controller2.noise_sigma)
+
+    def noise_sigma_3_scrollbar_update(self,value):
+        self.noise_sigmas[2].set(value)
+        self.controller3.kp = self.kp_scrollbars[2].get()
+        self.controller3.ki = self.ki_scrollbars[2].get()
+        self.controller3.kd = self.kd_scrollbars[2].get()
+        self.controller3.feed_forward = self.feed_forward_scrollbars[2].get()
+        self.controller3.noise_sigma = float(value)
+        self.controller_update(self.controller3,self.controller3_result)
+        self.draw()
+
+    def noise_sigma_3_entry_update(self,event):
+        try:
+            entry = float(self.noise_sigma_entries[2].get())
+            value = np.clip(entry,self.noise_sigma_low,self.noise_sigma_high)
+            self.noise_sigma_scrollbars[2].set(float(value))
+        except ValueError:
+            self.noise_sigmas[2].set(self.controller3.noise_sigma)
+
+    def noise_sigma_4_scrollbar_update(self,value):
+        self.noise_sigmas[3].set(value)
+        self.controller4.kp = self.kp_scrollbars[3].get()
+        self.controller4.ki = self.ki_scrollbars[3].get()
+        self.controller4.kd = self.kd_scrollbars[3].get()
+        self.controller4.feed_forward = self.feed_forward_scrollbars[3].get()
+        self.controller4.noise_sigma = float(value)
+        self.controller_update(self.controller4,self.controller4_result)
+        self.draw()
+
+    def noise_sigma_4_entry_update(self,event):
+        try:
+            entry = float(self.noise_sigma_entries[3].get())
+            value = np.clip(entry,self.noise_sigma_low,self.noise_sigma_high)
+            self.noise_sigma_scrollbars[3].set(float(value))
+        except ValueError:
+            self.noise_sigmas[3].set(self.controller4.noise_sigma)
+
     def enable_controller1(self):
         if self.controller1_enabled.get():
             self.kp_scrollbars[0].state(["!disabled"])
-            self.kp_entry[0].configure(state=tk.NORMAL)
+            self.kp_entries[0].configure(state=tk.NORMAL)
             self.ki_scrollbars[0].state(["!disabled"])
-            self.ki_entry[0].configure(state=tk.NORMAL)
+            self.ki_entries[0].configure(state=tk.NORMAL)
             self.kd_scrollbars[0].state(["!disabled"])
-            self.kd_entry[0].configure(state=tk.NORMAL)
+            self.kd_entries[0].configure(state=tk.NORMAL)
+            self.kd1_type_state.configure(state=tk.NORMAL)
+            self.kd1_type_error.configure(state=tk.NORMAL)
+            self.feed_forward_scrollbars[0].state(["!disabled"])
+            self.feed_forward_entries[0].configure(state=tk.NORMAL)
+            self.noise_sigma_scrollbars[0].state(["!disabled"])
+            self.noise_sigma_entries[0].configure(state=tk.NORMAL)
         else:
             self.kp_scrollbars[0].state(["disabled"])
-            self.kp_entry[0].configure(state=tk.DISABLED)
+            self.kp_entries[0].configure(state=tk.DISABLED)
             self.ki_scrollbars[0].state(["disabled"])
-            self.ki_entry[0].configure(state=tk.DISABLED)
+            self.ki_entries[0].configure(state=tk.DISABLED)
             self.kd_scrollbars[0].state(["disabled"])
-            self.kd_entry[0].configure(state=tk.DISABLED)
+            self.kd_entries[0].configure(state=tk.DISABLED)
+            self.kd1_type_state.configure(state=tk.DISABLED)
+            self.kd1_type_error.configure(state=tk.DISABLED)
+            self.feed_forward_scrollbars[0].state(["disabled"])
+            self.feed_forward_entries[0].configure(state=tk.DISABLED)
+            self.noise_sigma_scrollbars[0].state(["disabled"])
+            self.noise_sigma_entries[0].configure(state=tk.DISABLED)
         self.draw()
 
     def enable_controller2(self):
         if self.controller2_enabled.get():
             self.kp_scrollbars[1].state(["!disabled"])
-            self.kp_entry[1].configure(state=tk.NORMAL)
+            self.kp_entries[1].configure(state=tk.NORMAL)
             self.ki_scrollbars[1].state(["!disabled"])
-            self.ki_entry[1].configure(state=tk.NORMAL)
+            self.ki_entries[1].configure(state=tk.NORMAL)
             self.kd_scrollbars[1].state(["!disabled"])
-            self.kd_entry[1].configure(state=tk.NORMAL)
+            self.kd_entries[1].configure(state=tk.NORMAL)
+            self.kd2_type_state.configure(state=tk.NORMAL)
+            self.kd2_type_error.configure(state=tk.NORMAL)
+            self.feed_forward_scrollbars[1].state(["!disabled"])
+            self.feed_forward_entries[1].configure(state=tk.NORMAL)
+            self.noise_sigma_scrollbars[1].state(["!disabled"])
+            self.noise_sigma_entries[1].configure(state=tk.NORMAL)
         else:
             self.kp_scrollbars[1].state(["disabled"])
-            self.kp_entry[1].configure(state=tk.DISABLED)
+            self.kp_entries[1].configure(state=tk.DISABLED)
             self.ki_scrollbars[1].state(["disabled"])
-            self.ki_entry[1].configure(state=tk.DISABLED)
+            self.ki_entries[1].configure(state=tk.DISABLED)
             self.kd_scrollbars[1].state(["disabled"])
-            self.kd_entry[1].configure(state=tk.DISABLED)
+            self.kd_entries[1].configure(state=tk.DISABLED)
+            self.kd2_type_state.configure(state=tk.DISABLED)
+            self.kd2_type_error.configure(state=tk.DISABLED)
+            self.feed_forward_scrollbars[1].state(["disabled"])
+            self.feed_forward_entries[1].configure(state=tk.DISABLED)
+            self.noise_sigma_scrollbars[1].state(["disabled"])
+            self.noise_sigma_entries[1].configure(state=tk.DISABLED)
         self.draw()
 
     def enable_controller3(self):
         if self.controller3_enabled.get():
             self.kp_scrollbars[2].state(["!disabled"])
-            self.kp_entry[2].configure(state=tk.NORMAL)
+            self.kp_entries[2].configure(state=tk.NORMAL)
             self.ki_scrollbars[2].state(["!disabled"])
-            self.ki_entry[2].configure(state=tk.NORMAL)
+            self.ki_entries[2].configure(state=tk.NORMAL)
             self.kd_scrollbars[2].state(["!disabled"])
-            self.kd_entry[2].configure(state=tk.NORMAL)
+            self.kd_entries[2].configure(state=tk.NORMAL)
+            self.kd3_type_state.configure(state=tk.NORMAL)
+            self.kd3_type_error.configure(state=tk.NORMAL)
+            self.feed_forward_scrollbars[2].state(["!disabled"])
+            self.feed_forward_entries[2].configure(state=tk.NORMAL)
+            self.noise_sigma_scrollbars[2].state(["!disabled"])
+            self.noise_sigma_entries[2].configure(state=tk.NORMAL)
         else:
             self.kp_scrollbars[2].state(["disabled"])
-            self.kp_entry[2].configure(state=tk.DISABLED)
+            self.kp_entries[2].configure(state=tk.DISABLED)
             self.ki_scrollbars[2].state(["disabled"])
-            self.ki_entry[2].configure(state=tk.DISABLED)
+            self.ki_entries[2].configure(state=tk.DISABLED)
             self.kd_scrollbars[2].state(["disabled"])
-            self.kd_entry[2].configure(state=tk.DISABLED)
+            self.kd_entries[2].configure(state=tk.DISABLED)
+            self.kd3_type_state.configure(state=tk.DISABLED)
+            self.kd3_type_error.configure(state=tk.DISABLED)
+            self.feed_forward_scrollbars[2].state(["disabled"])
+            self.feed_forward_entries[2].configure(state=tk.DISABLED)
+            self.noise_sigma_scrollbars[2].state(["disabled"])
+            self.noise_sigma_entries[2].configure(state=tk.DISABLED)
         self.draw()
 
     def enable_controller4(self):
         if self.controller4_enabled.get():
             self.kp_scrollbars[3].state(["!disabled"])
-            self.kp_entry[3].configure(state=tk.NORMAL)
+            self.kp_entries[3].configure(state=tk.NORMAL)
             self.ki_scrollbars[3].state(["!disabled"])
-            self.ki_entry[3].configure(state=tk.NORMAL)
+            self.ki_entries[3].configure(state=tk.NORMAL)
             self.kd_scrollbars[3].state(["!disabled"])
-            self.kd_entry[3].configure(state=tk.NORMAL)
+            self.kd_entries[3].configure(state=tk.NORMAL)
+            self.kd4_type_state.configure(state=tk.NORMAL)
+            self.kd4_type_error.configure(state=tk.NORMAL)
+            self.feed_forward_scrollbars[3].state(["!disabled"])
+            self.feed_forward_entries[3].configure(state=tk.NORMAL)
+            self.noise_sigma_scrollbars[3].state(["!disabled"])
+            self.noise_sigma_entries[3].configure(state=tk.NORMAL)
         else:
             self.kp_scrollbars[3].state(["disabled"])
-            self.kp_entry[3].configure(state=tk.DISABLED)
+            self.kp_entries[3].configure(state=tk.DISABLED)
             self.ki_scrollbars[3].state(["disabled"])
-            self.ki_entry[3].configure(state=tk.DISABLED)
+            self.ki_entries[3].configure(state=tk.DISABLED)
             self.kd_scrollbars[3].state(["disabled"])
-            self.kd_entry[3].configure(state=tk.DISABLED)
+            self.kd_entries[3].configure(state=tk.DISABLED)
+            self.kd4_type_state.configure(state=tk.DISABLED)
+            self.kd4_type_error.configure(state=tk.DISABLED)
+            self.feed_forward_scrollbars[3].state(["disabled"])
+            self.feed_forward_entries[3].configure(state=tk.DISABLED)
+            self.noise_sigma_scrollbars[3].state(["disabled"])
+            self.noise_sigma_entries[3].configure(state=tk.DISABLED)
         self.draw()
 
     def scrollbar_setup(self):
@@ -751,12 +906,12 @@ class Tab():
             from_=self.steady_state_low, to=self.steady_state_high,
             command=self.steady_state_scrollbar_update)
         self.steady_state_scrollbar.grid(row=15,column=0,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         self.steady_state = tk.DoubleVar(self.tab)
         self.steady_state_entry = ttk.Entry(self.tab,textvariable=self.steady_state)
         self.steady_state_entry.bind("<Return>",self.steady_state_entry_update)
         self.steady_state_entry.grid(row=15,column=1,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         noise_sigma_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Noise Sigma',foreground='midnight blue')
         noise_sigma_label.grid(row=16,rowspan=1,column=0,columnspan=2,
@@ -765,12 +920,12 @@ class Tab():
             from_=self.noise_sigma_low, to=self.noise_sigma_high,
             command=self.noise_sigma_scrollbar_update)
         self.noise_sigma_scrollbar.grid(row=17,column=0,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         self.noise_sigma_var = tk.DoubleVar(self.tab)
         self.noise_sigma_entry = ttk.Entry(self.tab,textvariable=self.noise_sigma_var)
         self.noise_sigma_entry.bind("<Return>",self.noise_sigma_entry_update)
         self.noise_sigma_entry.grid(row=17,column=1,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
 
         # PID # 1
         pid_1_label = ttk.Label(self.tab, anchor=tk.W,
@@ -790,12 +945,11 @@ class Tab():
         kp1_scrollbar = ttk.Scale(self.tab,from_=self.kp_low, to=self.kp_high,
             command=self.kp1_scrollbar_update)
         kp1_scrollbar.grid(row=15,column=2,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kps[0] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kp1_entry = ttk.Entry(self.tab,textvariable=self.kps[0])
         kp1_entry.bind("<Return>",self.kp1_entry_update)
         kp1_entry.grid(row=15,column=3,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         ki_1_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Integral Gain',foreground='orange red')
         ki_1_label.grid(row=16,rowspan=1,column=2,columnspan=2,
@@ -803,12 +957,11 @@ class Tab():
         ki1_scrollbar = ttk.Scale(self.tab,from_=self.ki_low, to=self.ki_high,
             command=self.ki1_scrollbar_update)
         ki1_scrollbar.grid(row=17,column=2,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kis[0] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         ki1_entry = ttk.Entry(self.tab,textvariable=self.kis[0])
         ki1_entry.bind("<Return>",self.ki1_entry_update)
         ki1_entry.grid(row=17,column=3,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kd_1_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Derivative Gain',foreground='orange red')
         kd_1_label.grid(row=18,rowspan=1,column=2,columnspan=2,
@@ -828,12 +981,11 @@ class Tab():
         kd1_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd1_scrollbar_update)
         kd1_scrollbar.grid(row=20,column=2,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kds[0] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kd1_entry = ttk.Entry(self.tab,textvariable=self.kds[0])
         kd1_entry.bind("<Return>",self.kd1_entry_update)
         kd1_entry.grid(row=20,column=3,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         feed_forward_1_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Feed Forward',foreground='orange red')
         feed_forward_1_label.grid(row=21,rowspan=1,column=2,columnspan=2,
@@ -842,14 +994,26 @@ class Tab():
             from_=self.feed_forward_low, to=self.feed_forward_high,
             command=self.feed_forward_1_scrollbar_update)
         feed_forward_1_scrollbar.grid(row=23,column=2,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.feed_forwards[0] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         feed_forward_1_entry = ttk.Entry(self.tab,
             textvariable=self.feed_forwards[0])
         feed_forward_1_entry.bind("<Return>",self.feed_forward_1_entry_update)
         feed_forward_1_entry.grid(row=23,column=3,
-            sticky=tk.E+tk.W,padx=10)
-
+            sticky=tk.E+tk.W,padx=5,pady=5)
+        noise_sigma_1_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Noise Sigma',foreground='orange red')
+        noise_sigma_1_label.grid(row=24,rowspan=1,column=2,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        noise_sigma_1_scrollbar = ttk.Scale(self.tab,
+            from_=self.noise_sigma_low, to=self.noise_sigma_high,
+            command=self.noise_sigma_1_scrollbar_update)
+        noise_sigma_1_scrollbar.grid(row=25,column=2,columnspan=1,
+            sticky=tk.E+tk.W,padx=5,pady=5)
+        noise_sigma_1_entry = ttk.Entry(self.tab,
+            textvariable=self.noise_sigmas[0])
+        noise_sigma_1_entry.bind("<Return>",self.noise_sigma_1_entry_update)
+        noise_sigma_1_entry.grid(row=25,column=3,
+            sticky=tk.E+tk.W,padx=5,pady=5)
 
         # PID #2
         pid_2_label = ttk.Label(self.tab, anchor=tk.W,
@@ -869,12 +1033,11 @@ class Tab():
         kp2_scrollbar = ttk.Scale(self.tab,from_=self.kp_low, to=self.kp_high,
             command=self.kp2_scrollbar_update)
         kp2_scrollbar.grid(row=15,column=4,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kps[1] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kp2_entry = ttk.Entry(self.tab,textvariable=self.kps[1])
         kp2_entry.bind("<Return>",self.kp2_entry_update)
         kp2_entry.grid(row=15,column=5,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         ki_2_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Integral Gain',foreground='goldenrod')
         ki_2_label.grid(row=16,rowspan=1,column=4,columnspan=2,
@@ -882,12 +1045,11 @@ class Tab():
         ki2_scrollbar = ttk.Scale(self.tab,from_=self.ki_low, to=self.ki_high,
             command=self.ki2_scrollbar_update)
         ki2_scrollbar.grid(row=17,column=4,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kis[1] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         ki2_entry = ttk.Entry(self.tab,textvariable=self.kis[1])
         ki2_entry.bind("<Return>",self.ki2_entry_update)
         ki2_entry.grid(row=17,column=5,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kd_2_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Derivative Gain',foreground='goldenrod')
         kd_2_label.grid(row=18,rowspan=1,column=4,columnspan=2,
@@ -907,12 +1069,11 @@ class Tab():
         kd2_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd2_scrollbar_update)
         kd2_scrollbar.grid(row=20,column=4,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kds[1] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kd2_entry = ttk.Entry(self.tab,textvariable=self.kds[1])
         kd2_entry.bind("<Return>",self.kd2_entry_update)
         kd2_entry.grid(row=20,column=5,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         feed_forward_2_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Feed Forward',foreground='goldenrod')
         feed_forward_2_label.grid(row=21,rowspan=1,column=4,columnspan=2,
@@ -921,13 +1082,26 @@ class Tab():
             from_=self.feed_forward_low, to=self.feed_forward_high,
             command=self.feed_forward_2_scrollbar_update)
         feed_forward_2_scrollbar.grid(row=23,column=4,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.feed_forwards[1] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         feed_forward_2_entry = ttk.Entry(self.tab,
             textvariable=self.feed_forwards[1])
         feed_forward_2_entry.bind("<Return>",self.feed_forward_2_entry_update)
         feed_forward_2_entry.grid(row=23,column=5,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
+        noise_sigma_2_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Noise Sigma',foreground='goldenrod')
+        noise_sigma_2_label.grid(row=24,rowspan=1,column=4,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        noise_sigma_2_scrollbar = ttk.Scale(self.tab,
+            from_=self.noise_sigma_low, to=self.noise_sigma_high,
+            command=self.noise_sigma_2_scrollbar_update)
+        noise_sigma_2_scrollbar.grid(row=25,column=4,columnspan=1,
+            sticky=tk.E+tk.W,padx=5,pady=5)
+        noise_sigma_2_entry = ttk.Entry(self.tab,
+            textvariable=self.noise_sigmas[1])
+        noise_sigma_2_entry.bind("<Return>",self.noise_sigma_2_entry_update)
+        noise_sigma_2_entry.grid(row=25,column=5,
+            sticky=tk.E+tk.W,padx=5,pady=5)
 
 
         # PID #3
@@ -948,12 +1122,11 @@ class Tab():
         kp3_scrollbar = ttk.Scale(self.tab,from_=self.kp_low, to=self.kp_high,
             command=self.kp3_scrollbar_update)
         kp3_scrollbar.grid(row=15,column=6,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kps[2] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kp3_entry = ttk.Entry(self.tab,textvariable=self.kps[2])
         kp3_entry.bind("<Return>",self.kp3_entry_update)
         kp3_entry.grid(row=15,column=7,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         ki_3_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Integral Gain',foreground='DodgerBlue2')
         ki_3_label.grid(row=16,rowspan=1,column=6,columnspan=2,
@@ -961,12 +1134,11 @@ class Tab():
         ki3_scrollbar = ttk.Scale(self.tab,from_=self.ki_low, to=self.ki_high,
             command=self.ki3_scrollbar_update)
         ki3_scrollbar.grid(row=17,column=6,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kis[2] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         ki3_entry = ttk.Entry(self.tab,textvariable=self.kis[2])
         ki3_entry.bind("<Return>",self.ki3_entry_update)
         ki3_entry.grid(row=17,column=7,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kd_3_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Derivative Gain',foreground='DodgerBlue2')
         kd_3_label.grid(row=18,rowspan=1,column=6,columnspan=2,
@@ -986,12 +1158,11 @@ class Tab():
         kd3_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd3_scrollbar_update)
         kd3_scrollbar.grid(row=20,column=6,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kds[2] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kd3_entry = ttk.Entry(self.tab,textvariable=self.kds[2])
         kd3_entry.bind("<Return>",self.kd3_entry_update)
         kd3_entry.grid(row=20,column=7,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         feed_forward_3_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Feed Forward',foreground='DodgerBlue2')
         feed_forward_3_label.grid(row=21,rowspan=1,column=6,columnspan=2,
@@ -1000,13 +1171,26 @@ class Tab():
             from_=self.feed_forward_low, to=self.feed_forward_high,
             command=self.feed_forward_3_scrollbar_update)
         feed_forward_3_scrollbar.grid(row=23,column=6,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.feed_forwards[2] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         feed_forward_3_entry = ttk.Entry(self.tab,
             textvariable=self.feed_forwards[2])
         feed_forward_3_entry.bind("<Return>",self.feed_forward_3_entry_update)
         feed_forward_3_entry.grid(row=23,column=7,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
+        noise_sigma_3_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Noise Sigma',foreground='DodgerBlue2')
+        noise_sigma_3_label.grid(row=24,rowspan=1,column=6,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        noise_sigma_3_scrollbar = ttk.Scale(self.tab,
+            from_=self.noise_sigma_low, to=self.noise_sigma_high,
+            command=self.noise_sigma_3_scrollbar_update)
+        noise_sigma_3_scrollbar.grid(row=25,column=6,columnspan=1,
+            sticky=tk.E+tk.W,padx=5,pady=5)
+        noise_sigma_3_entry = ttk.Entry(self.tab,
+            textvariable=self.noise_sigmas[2])
+        noise_sigma_3_entry.bind("<Return>",self.noise_sigma_3_entry_update)
+        noise_sigma_3_entry.grid(row=25,column=7,
+            sticky=tk.E+tk.W,padx=5,pady=5)
 
         # PID #4
         pid_4_label = ttk.Label(self.tab, anchor=tk.W,
@@ -1026,12 +1210,11 @@ class Tab():
         kp4_scrollbar = ttk.Scale(self.tab,from_=self.kp_low, to=self.kp_high,
             command=self.kp4_scrollbar_update)
         kp4_scrollbar.grid(row=15,column=8,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kps[3] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kp4_entry = ttk.Entry(self.tab,textvariable=self.kps[3])
         kp4_entry.bind("<Return>",self.kp4_entry_update)
         kp4_entry.grid(row=15,column=9,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         ki_4_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Integral Gain',foreground='cyan4')
         ki_4_label.grid(row=16,rowspan=1,column=8,columnspan=2,
@@ -1039,12 +1222,11 @@ class Tab():
         ki4_scrollbar = ttk.Scale(self.tab,from_=self.ki_low, to=self.ki_high,
             command=self.ki4_scrollbar_update)
         ki4_scrollbar.grid(row=17,column=8,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kis[3] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         ki4_entry = ttk.Entry(self.tab,textvariable=self.kis[3])
         ki4_entry.bind("<Return>",self.ki4_entry_update)
         ki4_entry.grid(row=17,column=9,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kd_4_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Derivative Gain',foreground='cyan4')
         kd_4_label.grid(row=18,rowspan=1,column=8,columnspan=2,
@@ -1064,12 +1246,11 @@ class Tab():
         kd4_scrollbar = ttk.Scale(self.tab,from_=self.kd_low, to=self.kd_high,
             command=self.kd4_scrollbar_update)
         kd4_scrollbar.grid(row=20,column=8,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.kds[3] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         kd4_entry = ttk.Entry(self.tab,textvariable=self.kds[3])
         kd4_entry.bind("<Return>",self.kd4_entry_update)
         kd4_entry.grid(row=20,column=9,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         feed_forward_4_label = ttk.Label(self.tab, anchor=tk.CENTER,
             text='Feed Forward',foreground='cyan4')
         feed_forward_4_label.grid(row=21,rowspan=1,column=8,columnspan=2,
@@ -1078,22 +1259,38 @@ class Tab():
             from_=self.feed_forward_low, to=self.feed_forward_high,
             command=self.feed_forward_4_scrollbar_update)
         feed_forward_4_scrollbar.grid(row=23,column=8,columnspan=1,
-            sticky=tk.E+tk.W,padx=10)
-        self.feed_forwards[3] = tk.DoubleVar(self.tab)
+            sticky=tk.E+tk.W,padx=5,pady=5)
         feed_forward_4_entry = ttk.Entry(self.tab,
             textvariable=self.feed_forwards[3])
         feed_forward_4_entry.bind("<Return>",self.feed_forward_4_entry_update)
         feed_forward_4_entry.grid(row=23,column=9,
-            sticky=tk.E+tk.W,padx=10)
+            sticky=tk.E+tk.W,padx=5,pady=5)
+        noise_sigma_4_label = ttk.Label(self.tab, anchor=tk.CENTER,
+            text='Noise Sigma',foreground='cyan4')
+        noise_sigma_4_label.grid(row=24,rowspan=1,column=8,columnspan=2,
+            sticky=tk.N+tk.S+tk.E+tk.W,padx=5,pady=5,ipadx=5,ipady=5)
+        noise_sigma_4_scrollbar = ttk.Scale(self.tab,
+            from_=self.noise_sigma_low, to=self.noise_sigma_high,
+            command=self.noise_sigma_4_scrollbar_update)
+        noise_sigma_4_scrollbar.grid(row=25,column=8,columnspan=1,
+            sticky=tk.E+tk.W,padx=5,pady=5)
+        noise_sigma_4_entry = ttk.Entry(self.tab,
+            textvariable=self.noise_sigmas[3])
+        noise_sigma_4_entry.bind("<Return>",self.noise_sigma_4_entry_update)
+        noise_sigma_4_entry.grid(row=25,column=9,
+            sticky=tk.E+tk.W,padx=5,pady=5)
 
         self.kp_scrollbars = [kp1_scrollbar,kp2_scrollbar,kp3_scrollbar,kp4_scrollbar]
-        self.kp_entry = [kp1_entry,kp2_entry,kp3_entry,kp4_entry]
+        self.kp_entries = [kp1_entry,kp2_entry,kp3_entry,kp4_entry]
 
         self.ki_scrollbars = [ki1_scrollbar,ki2_scrollbar,ki3_scrollbar,ki4_scrollbar]
-        self.ki_entry = [ki1_entry,ki2_entry,ki3_entry,ki4_entry]
+        self.ki_entries = [ki1_entry,ki2_entry,ki3_entry,ki4_entry]
 
         self.kd_scrollbars = [kd1_scrollbar,kd2_scrollbar,kd3_scrollbar,kd4_scrollbar]
-        self.kd_entry = [kd1_entry,kd2_entry,kd3_entry,kd4_entry]
+        self.kd_entries = [kd1_entry,kd2_entry,kd3_entry,kd4_entry]
 
         self.feed_forward_scrollbars = [feed_forward_1_scrollbar,feed_forward_2_scrollbar,feed_forward_3_scrollbar,feed_forward_4_scrollbar]
-        self.feed_forward_entry = [feed_forward_1_entry,feed_forward_2_entry,feed_forward_3_entry,feed_forward_4_entry]
+        self.feed_forward_entries = [feed_forward_1_entry,feed_forward_2_entry,feed_forward_3_entry,feed_forward_4_entry]
+
+        self.noise_sigma_scrollbars = [noise_sigma_1_scrollbar,noise_sigma_2_scrollbar,noise_sigma_3_scrollbar,noise_sigma_4_scrollbar]
+        self.noise_sigma_entries = [noise_sigma_1_entry,noise_sigma_2_entry,noise_sigma_3_entry,noise_sigma_4_entry]
