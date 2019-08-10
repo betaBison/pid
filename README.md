@@ -1,4 +1,4 @@
-# control: PID control template and GUI visualization
+# PID: PID control template and GUI visualization
 
 `lib/pid.py` from this repository is intended to be easily implemented into other projects.  
 
@@ -7,7 +7,7 @@ Install the needed dependencies:
 `pip install ttkthemes matplotlib`
 
 # GUI
-gui.py is a visualization tool to see how pid gains affect the response characteristics.
+gui.py is a visualization tool to see how pid gains affect the response characteristics.  
 To run the gui: `python gui.py`  
 
 ## Setpoint Options
