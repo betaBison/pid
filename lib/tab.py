@@ -390,7 +390,7 @@ class Tab():
 
     def noise_sigma_entry_update(self,event):
         try:
-            entry = float(self.noise_sigma_entries.get())
+            entry = float(self.noise_sigma_entry.get())
             value = np.clip(entry,self.noise_sigma_low,self.noise_sigma_high)
             self.noise_sigma_scrollbar.set(float(value))
         except ValueError:
