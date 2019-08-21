@@ -2,21 +2,21 @@
 
 `lib/pid.py` from this repository is intended to be easily implemented into other projects.  
 
-# Setup
+## Setup
 Install the needed dependencies:  
 `pip install ttkthemes matplotlib`
 
-# GUI
+## GUI
 gui.py is a visualization tool to see how pid gains affect the response characteristics.  
 To run the gui: `python gui.py`  
 
-## Setpoint Options
+### Setpoint Options
 - step, ramp, quadratic input (change the tab to change the type of
     setpoint for the controllers to track)
 - steady state error
 - noise
 
-## Controller Options
+### Controller Options
 - proportional gain
 - integral gain
 - derivative gain
